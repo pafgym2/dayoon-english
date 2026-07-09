@@ -3,6 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#e85a98">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="다윤이 영어">
 <title>다윤이 화상영어 — 1년 스크립트</title>
 <style>
   :root{
@@ -1667,6 +1674,13 @@ function currentStreak(){
 }
 function monthCount(y,m){ let c=0; stampSet().forEach(function(k){var p=k.split('-'); if(+p[0]===y&&+p[1]===m)c++;}); return c; }
 
+function weekCount(){
+  const t=new Date(); t.setHours(0,0,0,0);
+  const dow=(t.getDay()+6)%7; // 월요일=0
+  const s=stampSet(); let c=0;
+  for(let i=0;i<=dow;i++){const d=new Date(t); d.setDate(t.getDate()-(dow-i)); if(s.has(dkey(d)))c++;}
+  return c;
+}
 function homeHTML(y,m){
   const today=new Date(); today.setHours(0,0,0,0);
   const s=stampSet(), todayKey=dkey(today), todayStamped=s.has(todayKey);
@@ -1689,6 +1703,8 @@ function homeHTML(y,m){
     +'<button type="button" class="tc-go" onclick="goToday()">오늘 스크립트 열기 →</button></div>';
   h+='<button class="bigstamp'+(todayStamped?' done':'')+'" type="button" onclick="stampToday()">'
     +(todayStamped?'오늘 도장 완료! 🎉<small>잘했어요 · 다시 누르면 취소</small>':'오늘 연습 끝! 도장 쾅 🟢<small>도장 1개 = 🪙10 + 진도 한 칸</small>')+'</button>';
+  const wk=weekCount();
+  h+='<div class="weekline">📅 이번 주 '+wk+'/7일 연습'+(wk>=7?' — 완벽한 한 주! 🎉':(wk>=4?' — 아주 잘하고 있어요! 👏':''))+'</div>';
   h+='<div class="cal"><div class="cal-head">'
     +'<button class="navb" type="button" aria-label="이전 달" onclick="calShift(-1)">‹</button>'
     +'<div class="cal-title">'+y+'년 '+m+'월</div>'
@@ -1706,6 +1722,9 @@ function homeHTML(y,m){
   h+='</div></div>';
   h+='<p class="home-note">날짜를 톡 누르면 도장을 찍거나 지울 수 있어요.<br>미래 날짜는 아직 찍을 수 없어요. 매일 연습하고 🔥 연속 일수를 늘려봐요!</p>';
   h+=shopHTML();
+  h+='<div class="parentbox"><span class="pb-label">⚙️ 부모용 · 폰을 바꿀 때 기록(도장·코인·진도·아바타) 옮기기</span>'
+    +'<span class="pb-btns"><button type="button" onclick="exportData()">📤 백업 코드 복사</button>'
+    +'<button type="button" onclick="importData()">📥 복원</button></span></div>';
   justStamped=null;
   return h;
 }
@@ -1813,7 +1832,248 @@ render();
     background:#33303a;color:#fff;padding:10px 18px;border-radius:999px;font-weight:700;
     font-size:14px;z-index:60;opacity:0;pointer-events:none;transition:opacity .25s;text-align:center;}
   #toast.show{opacity:.95;}
+  /* ===== 🎯 퀴즈 · 🗣️ 따라 말하기 · 주간 요약 · 부모용 ===== */
+  #quizov,#shadov{position:fixed;inset:0;background:rgba(51,48,58,.45);z-index:50;display:none;align-items:center;justify-content:center;padding:20px;}
+  #quizov .card,#shadov .card{background:#fff;border-radius:20px;padding:22px 18px 18px;max-width:420px;width:100%;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.25);}
+  #quizov .rtitle,#shadov .rtitle{font-size:14px;font-weight:800;color:var(--pink-d);}
+  #quizov .rsub,#shadov .rsub{font-size:12px;color:var(--soft);margin-top:2px;}
+  #shadov .btns{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:12px;}
+  #shadov .btns button{border:none;border-radius:999px;padding:10px 14px;font-weight:800;cursor:pointer;font-size:14px;}
+  #shadov .b1{background:#e7f0ff;color:#2b6fd1;}
+  #shadov .b2{background:var(--pink);color:#fff;}
+  #shadov .b3{background:#f0f0f0;color:#666;}
+  #sh-rec.on{background:#ff5a5a;animation:recpulse 1s infinite;}
+  .sh-en{font-size:19px;font-weight:800;margin:14px 0 4px;line-height:1.45;}
+  .sh-ko{font-size:13px;color:var(--soft);}
+  .qz-num{font-size:12px;color:var(--soft);margin-top:10px;font-variant-numeric:tabular-nums;}
+  .qz-label{font-size:13px;font-weight:700;color:var(--soft);margin-top:8px;}
+  .qz-word{font-size:22px;font-weight:800;margin:8px 0 14px;}
+  .qz-choices{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+  .qz-c{border:1px solid var(--line);background:#faf6fa;border-radius:12px;padding:12px 8px;font-size:15px;font-weight:700;cursor:pointer;color:var(--ink);}
+  .qz-c.right{background:#e2f8ec;border-color:#34c77b;color:#1f8a5b;}
+  .qz-c.wrong{background:#ffe9ec;border-color:#e8607a;color:#c9405c;}
+  .shadow-btn{display:block;width:100%;border:none;cursor:pointer;margin-top:10px;border-radius:12px;padding:11px;
+    font-size:14.5px;font-weight:800;color:#fff;background:linear-gradient(135deg,#a78bfa,#8b5cf6);box-shadow:0 4px 10px rgba(139,92,246,.3);}
+  .weekline{text-align:center;font-size:13.5px;font-weight:800;color:var(--pink-d);background:#fff0f7;border-radius:12px;padding:9px;margin-bottom:16px;}
+  .parentbox{margin-top:14px;background:#f6f4f7;border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:8px;}
+  .parentbox .pb-label{font-size:11.5px;color:var(--soft);font-weight:700;}
+  .parentbox .pb-btns{display:flex;gap:8px;}
+  .parentbox button{flex:1;border:none;border-radius:10px;padding:9px;font-size:13px;font-weight:800;cursor:pointer;background:#fff;color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,.08);}
 </style>
 <div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* ============ 🎯 단어 퀴즈 · 🗣️ 따라 말하기 · 📤 백업/복원 · PWA ============ */
+
+/* --- speak 확장: 두 번째 인자로 속도 (0.6 = 천천히) --- */
+function speak(t,rate){
+  if(!("speechSynthesis" in window)){alert("이 브라우저는 음성 재생을 지원하지 않아요."); return;}
+  t=String(t).replace(/[()]/g," ").replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}]/gu,"").trim();
+  if(!t)return;
+  speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(t);
+  u.lang="en-US"; u.rate=rate||0.85; u.pitch=1.05;
+  const v=speechSynthesis.getVoices().find(function(v){return v.lang&&v.lang.indexOf("en")===0;});
+  if(v)u.voice=v;
+  speechSynthesis.speak(u);
+}
+
+/* --- 🎯 단어 퀴즈: 진도까지 배운 새 단어에서 5문제 --- */
+function quizWordPool(){
+  const upto=Math.min(getProg().m, MONTHS.length-1);
+  let ws=[];
+  for(let i=0;i<=upto;i++)MONTHS[i].days.forEach(function(d){(d.words||[]).forEach(function(w){
+    if(/[a-zA-Z]/.test(w[0])&&w[1]&&/[가-힣]/.test(w[1]))ws.push({en:w[0],ko:w[1]});
+  });});
+  const seen={};
+  return ws.filter(function(w){if(seen[w.en])return false; seen[w.en]=true; return true;});
+}
+let quiz={qs:[],i:0,score:0,rewarded:false,locked:false};
+function quizTodayKey(){const t=new Date(); return t.getFullYear()+'-'+(t.getMonth()+1)+'-'+t.getDate();}
+function quizRewardLeft(){
+  const q=lsGet('dayoon_quizq',{d:'',n:0});
+  return q.d===quizTodayKey()?Math.max(0,3-q.n):3;
+}
+function quizUseReward(){
+  const q=lsGet('dayoon_quizq',{d:'',n:0});
+  if(q.d!==quizTodayKey()){q.d=quizTodayKey();q.n=0;}
+  q.n++; lsSet('dayoon_quizq',q);
+}
+function openQuiz(){
+  const pool=quizWordPool();
+  if(pool.length<4){showToast('퀴즈 낼 단어가 아직 부족해요! 조금 더 배우고 와요 🌱'); return;}
+  const shuffled=pool.slice().sort(function(){return Math.random()-0.5;});
+  const qs=shuffled.slice(0,Math.min(5,shuffled.length)).map(function(w){
+    const wrong=pool.filter(function(x){return x.en!==w.en;}).sort(function(){return Math.random()-0.5;}).slice(0,3);
+    return {w:w, mode:Math.random()<0.5?'en2ko':'ko2en',
+            choices:wrong.concat([w]).sort(function(){return Math.random()-0.5;})};
+  });
+  quiz={qs:qs,i:0,score:0,rewarded:quizRewardLeft()>0,locked:false};
+  if(quiz.rewarded)quizUseReward();
+  document.getElementById('quizov').style.display='flex';
+  quizShow();
+}
+function quizShow(){
+  const q=quiz.qs[quiz.i];
+  const label=q.mode==='en2ko'?'이 단어의 뜻은?':'이 뜻의 영어 단어는?';
+  const prompt=q.mode==='en2ko'?q.w.en:q.w.ko;
+  document.getElementById('quizbody').innerHTML=
+    '<div class="qz-num">'+(quiz.i+1)+' / '+quiz.qs.length+(quiz.rewarded?'':' · 연습 모드 (오늘 코인 획득 끝!)')+'</div>'
+    +'<div class="qz-label">'+label+'</div>'
+    +'<div class="qz-word">'+prompt+(q.mode==='en2ko'?' <button class="spk" type="button" onclick="speak(quiz.qs[quiz.i].w.en)">🔊</button>':'')+'</div>'
+    +'<div class="qz-choices">'+q.choices.map(function(c,i){
+      return '<button type="button" class="qz-c" onclick="quizAnswer('+i+')">'+(q.mode==='en2ko'?c.ko:c.en)+'</button>';
+    }).join('')+'</div>';
+  if(q.mode==='en2ko')speak(q.w.en);
+}
+function quizAnswer(i){
+  if(quiz.locked)return; quiz.locked=true;
+  const q=quiz.qs[quiz.i], ok=q.choices[i].en===q.w.en;
+  document.querySelectorAll('.qz-c').forEach(function(b,bi){
+    if(q.choices[bi].en===q.w.en)b.classList.add('right');
+    else if(bi===i)b.classList.add('wrong');
+    b.disabled=true;
+  });
+  if(ok)quiz.score++;
+  setTimeout(function(){
+    quiz.locked=false; quiz.i++;
+    if(quiz.i<quiz.qs.length)quizShow(); else quizEnd();
+  },900);
+}
+function quizEnd(){
+  let coins=0;
+  if(quiz.rewarded){
+    coins=quiz.score*2+(quiz.score===quiz.qs.length?10:0);
+    if(coins)setCoins(getCoins()+coins);
+  }
+  document.getElementById('quizbody').innerHTML=
+    '<div class="qz-word" style="margin-top:10px">'+(quiz.score===quiz.qs.length?'💯 완벽해요!':'🎉 잘했어요!')+'</div>'
+    +'<div class="qz-label">'+quiz.score+' / '+quiz.qs.length+' 정답'+(coins?' · +'+coins+' 🪙':'')+'</div>'
+    +'<div class="qz-choices" style="margin-top:12px"><button type="button" class="qz-c" onclick="openQuiz()">한 번 더!</button>'
+    +'<button type="button" class="qz-c" onclick="closeQuiz()">닫기</button></div>';
+  if(coins)showToast('퀴즈 보상 +'+coins+' 🪙');
+}
+function closeQuiz(){document.getElementById('quizov').style.display='none'; if("speechSynthesis" in window)speechSynthesis.cancel();}
+
+/* --- 🗣️ 따라 말하기: 듣기 → 녹음 → 내 발음 비교 --- */
+let shadow={list:[],i:0}, shRec=null, shChunks=[], shURL=null;
+function shadowSentences(){
+  if(cur.m<0)return [];
+  const d=MONTHS[cur.m].days[cur.d]; if(!d)return [];
+  return [].concat(d.main||[],d.role||[],d.wrap||[])
+    .filter(function(l){return l[0]==='D'&&/[a-zA-Z]/.test(l[1]);})
+    .map(function(l){return {en:l[1].replace(/[()]/g,'').replace(/\s+/g,' ').trim(), ko:(l[2]||'')};});
+}
+function openShadow(){
+  const ls=shadowSentences();
+  if(!ls.length){showToast('이 날은 따라 말할 문장이 없어요'); return;}
+  shadow={list:ls,i:0};
+  document.getElementById('shadov').style.display='flex';
+  shadowShow();
+}
+function shadowShow(){
+  const s=shadow.list[shadow.i];
+  document.getElementById('sh-num').textContent=(shadow.i+1)+' / '+shadow.list.length+' · 듣고 → 녹음하고 → 비교해요';
+  document.getElementById('sh-en').textContent=s.en;
+  document.getElementById('sh-ko').textContent=s.ko;
+  const au=document.getElementById('sh-au'); au.style.display='none'; au.removeAttribute('src');
+  const rb=document.getElementById('sh-rec'); rb.classList.remove('on'); rb.textContent='🎙️ 녹음';
+  if(shURL){URL.revokeObjectURL(shURL); shURL=null;}
+  speak(s.en);
+}
+function shadowNext(){ shadow.i=(shadow.i+1)%shadow.list.length; shadowShow(); }
+function shadowRec(){
+  const btn=document.getElementById('sh-rec');
+  if(shRec&&shRec.state==='recording'){shRec.stop(); return;}
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){showToast('이 환경에선 마이크를 쓸 수 없어요 😢'); return;}
+  navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream){
+    shRec=new MediaRecorder(stream); shChunks=[];
+    shRec.ondataavailable=function(e){shChunks.push(e.data);};
+    shRec.onstop=function(){
+      stream.getTracks().forEach(function(t){t.stop();});
+      if(shURL)URL.revokeObjectURL(shURL);
+      shURL=URL.createObjectURL(new Blob(shChunks,{type:shRec.mimeType||'audio/mp4'}));
+      const au=document.getElementById('sh-au'); au.src=shURL; au.style.display='block';
+      au.play().catch(function(){});
+      btn.classList.remove('on'); btn.textContent='🎙️ 다시 녹음';
+    };
+    shRec.start(); btn.classList.add('on'); btn.textContent='⏹ 그만';
+  }).catch(function(){showToast('마이크 권한이 필요해요 😢');});
+}
+function closeShadow(){
+  document.getElementById('shadov').style.display='none';
+  if(shRec&&shRec.state==='recording')shRec.stop();
+  if("speechSynthesis" in window)speechSynthesis.cancel();
+}
+function injectShadowBtn(){
+  if(cur.m<0)return;
+  const seg=document.querySelector('#main .seg.main');
+  if(!seg||seg.querySelector('.shadow-btn'))return;
+  if(!shadowSentences().length)return;
+  const b=document.createElement('button');
+  b.type='button'; b.className='shadow-btn';
+  b.textContent='🗣️ 따라 말하기 연습 (듣고 → 녹음 → 비교)';
+  b.onclick=openShadow;
+  seg.appendChild(b);
+}
+
+/* --- 📤 백업 / 📥 복원 (부모용) --- */
+const BK_KEYS=['dayoon_stamps','dayoon_coins','dayoon_prog','dayoon_avatar','dayoon_bonuspaid','dayoon_pos_v3','dayoon_fs','dayoon_quizq'];
+function exportData(){
+  const o={};
+  BK_KEYS.forEach(function(k){try{const v=localStorage.getItem(k); if(v!==null)o[k]=v;}catch(e){}});
+  const code='DY1.'+btoa(unescape(encodeURIComponent(JSON.stringify(o))));
+  function fallback(){prompt('아래 코드를 길게 눌러 복사한 뒤, 카톡 "나에게 보내기"로 보관하세요 📋',code);}
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(code).then(function(){showToast('백업 코드 복사 완료! 카톡 "나에게 보내기"에 붙여넣어 보관하세요 📋');},fallback);
+  } else fallback();
+}
+function importData(){
+  const code=prompt('백업 코드를 붙여넣으세요');
+  if(!code)return;
+  try{
+    const j=JSON.parse(decodeURIComponent(escape(atob(code.trim().replace(/^DY1\./,'')))));
+    let n=0; BK_KEYS.forEach(function(k){if(j[k]!==undefined){localStorage.setItem(k,j[k]); n++;}});
+    if(!n)throw 0;
+    render(); showToast('복원 완료! 도장·코인·진도를 불러왔어요 ✅');
+  }catch(e){showToast('코드가 올바르지 않아요 😢 다시 확인해주세요');}
+}
+
+/* --- render 확장: 스크립트 화면에 따라 말하기 버튼 --- */
+const _renderPrev=render;
+render=function(){ _renderPrev(); injectShadowBtn(); };
+
+/* --- UI 주입: 🎯 버튼 + 퀴즈/따라말하기 오버레이 --- */
+document.body.insertAdjacentHTML('beforeend',
+  '<div id="quizov" onclick="if(event.target===this)closeQuiz()"><div class="card">'
+  +'<div class="rtitle">🎯 단어 퀴즈</div>'
+  +'<div class="rsub">지금까지 배운 새 단어에서 5문제! 정답 +2🪙 · 다 맞으면 +10 보너스 · 하루 3판까지</div>'
+  +'<div id="quizbody"></div></div></div>'
+  +'<div id="shadov" onclick="if(event.target===this)closeShadow()"><div class="card">'
+  +'<div class="rtitle">🗣️ 따라 말하기</div><div class="rsub" id="sh-num"></div>'
+  +'<div class="sh-en" id="sh-en"></div><div class="sh-ko" id="sh-ko"></div>'
+  +'<audio id="sh-au" controls style="display:none;width:100%;margin-top:10px"></audio>'
+  +'<div class="btns">'
+  +'<button type="button" class="b1" onclick="speak(shadow.list[shadow.i].en)">🔊 듣기</button>'
+  +'<button type="button" class="b1" onclick="speak(shadow.list[shadow.i].en,0.6)">🐢 천천히</button>'
+  +'<button type="button" class="b2" id="sh-rec" onclick="shadowRec()">🎙️ 녹음</button>'
+  +'<button type="button" class="b2" onclick="shadowNext()">다음 →</button>'
+  +'<button type="button" class="b3" onclick="closeShadow()">닫기</button>'
+  +'</div></div></div>');
+(function(){
+  const fb=document.querySelector('.fontbtn');
+  const qz=document.createElement('button');
+  qz.className='toolbtn'; qz.textContent='🎯'; qz.title='단어 퀴즈'; qz.type='button'; qz.onclick=openQuiz;
+  fb.insertBefore(qz,fb.firstChild);
+})();
+
+/* --- PWA: 서비스워커 등록 (깃허브 페이지에서만 — 오프라인 사용 가능) --- */
+if('serviceWorker' in navigator && location.hostname.indexOf('github.io')>-1){
+  try{navigator.serviceWorker.register('./sw.js');}catch(e){}
+}
+
+/* 따라 말하기 버튼 반영해서 다시 그리기 */
+render();
+</script>
 </body>
 </html>

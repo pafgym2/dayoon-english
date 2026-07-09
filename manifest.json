@@ -1,0 +1,14 @@
+{
+  "name": "다윤이 영어",
+  "short_name": "다윤이 영어",
+  "description": "다윤이 화상영어 1년 스크립트 + 도장 캘린더",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#fff7fb",
+  "theme_color": "#e85a98",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

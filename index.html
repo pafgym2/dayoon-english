@@ -157,6 +157,7 @@ const WARMUP = {
     ["D","Yes, I'm ready!","네, 준비됐어요!"]
   ],
   pills:["Monday 먼데이","Tuesday 튜즈데이","Wednesday 웬즈데이","Thursday 썰스데이","Friday 프라이데이",
+         "Saturday 쌔러데이","Sunday 썬데이",
          "sunny 맑음","cloudy 흐림","rainy 비","windy 바람","hot 더움","cold 추움"]
 };
 const SOS = [
@@ -1346,6 +1347,13 @@ function addSpeakers(){
     if(!t||!/[a-zA-Z]/.test(t))return;
     el.appendChild(spkBtn(t));
   });
+  // 🌏 외국 친구 표현에도 발음 버튼
+  document.querySelectorAll("#main .fx").forEach(function(el){
+    if(el.querySelector(".spk"))return;
+    const en=el.querySelector(".en");
+    if(!en||!/[a-zA-Z]/.test(en.textContent))return;
+    en.appendChild(spkBtn(en.textContent));
+  });
 }
 
 /* --- 📝 레벨테스트 예상 질문 & 다윤이 답 --- */
@@ -1548,6 +1556,107 @@ function dkey(d){ return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate(); }
 let calView=(function(){var d=new Date(); return {y:d.getFullYear(), m:d.getMonth()+1};})();
 let justStamped=null;
 
+/* --- 공통 저장 유틸 --- */
+function lsGet(k,fb){ try{const v=JSON.parse(localStorage.getItem(k)); return (v===null||v===undefined)?fb:v;}catch(e){return fb;} }
+function lsSet(k,v){ try{localStorage.setItem(k,JSON.stringify(v));}catch(e){} }
+
+/* --- 🍞 토스트 알림 --- */
+let toastTimer=null;
+function showToast(msg){
+  const t=document.getElementById('toast'); if(!t)return;
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(toastTimer); toastTimer=setTimeout(function(){t.classList.remove('show');},2200);
+}
+
+/* --- 🪙 코인: 도장 1개 = 10 · 도장 7개마다 +50 🎁 · 28개마다 +200 🏆 --- */
+function getCoins(){ return lsGet('dayoon_coins',0); }
+function setCoins(n){ lsSet('dayoon_coins',Math.max(0,n)); }
+function coinOnAdd(){
+  let gain=10; const tot=stampSet().size;
+  const paid=lsGet('dayoon_bonuspaid',{w:0,mo:0});
+  let msg='도장 쾅! +10 🪙';
+  if(tot>0&&tot%7===0&&tot>paid.w){gain+=50; paid.w=tot; msg='도장 '+tot+'개 — 한 주 완성 보너스 +50 🎁';}
+  if(tot>0&&tot%28===0&&tot>paid.mo){gain+=200; paid.mo=tot; msg='도장 '+tot+'개 — 한 달 완성 보너스 +200 🏆';}
+  lsSet('dayoon_bonuspaid',paid);
+  setCoins(getCoins()+gain);
+  showToast(msg);
+}
+function coinOnRemove(){ setCoins(getCoins()-10); }
+
+/* --- 📌 진도: m=개월차(0~11) · w=주차(0~3, 같은 7일 반복) · d=Day(0~6) --- */
+function getProg(){ const p=lsGet('dayoon_prog',null); return (p&&typeof p.m==='number')?p:{m:0,w:0,d:0}; }
+function saveProg(p){ lsSet('dayoon_prog',p); }
+function shiftProg(dir){
+  const p=getProg(); p.d+=dir;
+  if(p.d>6){p.d=0;p.w++;} if(p.w>3){p.w=0;p.m++;}
+  if(p.d<0){p.d=6;p.w--;} if(p.w<0){p.w=3;p.m--;}
+  if(p.m>11){p.m=11;p.w=3;p.d=6;} if(p.m<0){p.m=0;p.w=0;p.d=0;}
+  saveProg(p);
+}
+function progPct(){ const p=getProg(); return Math.min(100,Math.round((p.m*28+p.w*7+p.d)/336*100)); }
+function goToday(){ const p=getProg(); cur={m:p.m,d:p.d}; render(); }
+function progShift(dir){ shiftProg(dir); render(); }
+
+/* --- 🎨 아바타 & 꾸미기 상점 --- */
+const ITEMS=[
+  {id:'pet_dog',    slot:'pet', e:'🐶', n:'강아지',  p:0},
+  {id:'pet_cat',    slot:'pet', e:'🐱', n:'고양이',  p:120},
+  {id:'pet_rabbit', slot:'pet', e:'🐰', n:'토끼',    p:150},
+  {id:'pet_fox',    slot:'pet', e:'🦊', n:'여우',    p:180},
+  {id:'pet_panda',  slot:'pet', e:'🐼', n:'판다',    p:250},
+  {id:'pet_unicorn',slot:'pet', e:'🦄', n:'유니콘',  p:500},
+  {id:'hat_ribbon', slot:'hat', e:'🎀', n:'리본',    p:60},
+  {id:'hat_flower', slot:'hat', e:'🌸', n:'꽃',      p:70},
+  {id:'hat_cap',    slot:'hat', e:'🧢', n:'모자',    p:80},
+  {id:'hat_star',   slot:'hat', e:'⭐', n:'별',      p:90},
+  {id:'hat_crown',  slot:'hat', e:'👑', n:'왕관',    p:200},
+  {id:'hand_balloon',slot:'hand',e:'🎈', n:'풍선',   p:50},
+  {id:'hand_candy', slot:'hand', e:'🍭', n:'사탕',   p:60},
+  {id:'hand_pencil',slot:'hand', e:'✏️', n:'연필',   p:80},
+  {id:'hand_art',   slot:'hand', e:'🎨', n:'물감',   p:100},
+  {id:'hand_skate', slot:'hand', e:'⛸️', n:'스케이트',p:150}
+];
+function getAva(){ const a=lsGet('dayoon_avatar',null); return (a&&a.eq)?a:{owned:['pet_dog'],eq:{pet:'pet_dog',hat:null,hand:null}}; }
+function saveAva(a){ lsSet('dayoon_avatar',a); }
+function itemById(id){ return ITEMS.find(function(i){return i.id===id;}); }
+function avatarHTML(){
+  const a=getAva(), pet=itemById(a.eq.pet)||ITEMS[0];
+  let h='<span class="pet">'+pet.e+'</span>';
+  if(a.eq.hat&&itemById(a.eq.hat))h+='<span class="acc hat">'+itemById(a.eq.hat).e+'</span>';
+  if(a.eq.hand&&itemById(a.eq.hand))h+='<span class="acc hand">'+itemById(a.eq.hand).e+'</span>';
+  return h;
+}
+function tapItem(id){
+  const a=getAva(), it=itemById(id); if(!it)return;
+  if(a.owned.indexOf(id)>-1){
+    if(it.slot==='pet'){ a.eq.pet=id; showToast(it.e+' '+it.n+' 착용!'); }
+    else if(a.eq[it.slot]===id){ a.eq[it.slot]=null; showToast(it.n+' 벗었어요'); }
+    else { a.eq[it.slot]=id; showToast(it.e+' '+it.n+' 착용!'); }
+    saveAva(a); render(); return;
+  }
+  const c=getCoins();
+  if(c<it.p){ showToast('코인이 부족해요! 도장 '+Math.ceil((it.p-c)/10)+'개 더 모으면 살 수 있어요 💪'); return; }
+  setCoins(c-it.p); a.owned.push(id); a.eq[it.slot]=id; saveAva(a);
+  showToast(it.e+' '+it.n+' 샀어요! −'+it.p+' 🪙'); render();
+}
+function shopHTML(){
+  const a=getAva(), c=getCoins();
+  const slotName={pet:'동물 친구',hat:'머리 꾸미기',hand:'손에 드는 것'};
+  let h='<div class="shop"><div class="shop-head"><h3>🎨 꾸미기 상점</h3><span class="coinchip">🪙 '+c+'</span></div>';
+  ['pet','hat','hand'].forEach(function(sl){
+    h+='<div class="shop-slot">'+slotName[sl]+'</div><div class="shop-grid">';
+    ITEMS.filter(function(i){return i.slot===sl;}).forEach(function(it){
+      const owned=a.owned.indexOf(it.id)>-1, eq=a.eq[sl]===it.id;
+      h+='<button type="button" class="item'+(eq?' eq':'')+(owned?' own':'')+'" onclick="tapItem(\''+it.id+'\')">'
+        +'<span class="ie">'+it.e+'</span><span class="in">'+it.n+'</span>'
+        +'<span class="ip">'+(eq?'착용중':(owned?'착용하기':'🪙'+it.p))+'</span></button>';
+    });
+    h+='</div>';
+  });
+  h+='<p class="home-note" style="margin:10px 0 0">도장 1개 = 🪙10 · 도장 7개마다 +50 🎁 · 28개마다 +200 🏆</p></div>';
+  return h;
+}
+
 function currentStreak(){
   const s=stampSet(); if(!s.size)return 0;
   const d=new Date(); d.setHours(0,0,0,0);
@@ -1563,13 +1672,23 @@ function homeHTML(y,m){
   const s=stampSet(), todayKey=dkey(today), todayStamped=s.has(todayKey);
   const startDow=new Date(y,m-1,1).getDay(), days=new Date(y,m,0).getDate();
   const canGoNext=(y*12+m) < (today.getFullYear()*12+(today.getMonth()+1));
+  const p=getProg(), pd=MONTHS[p.m].days[p.d];
   let h='';
-  h+='<div class="home-hero"><div class="ava">🐶</div><div class="stats">'
-    +'<div class="stat"><b>🔥'+currentStreak()+'</b><span>연속 일수</span></div>'
-    +'<div class="stat"><b>'+monthCount(y,m)+'</b><span>이번 달 도장</span></div>'
-    +'<div class="stat"><b>'+s.size+'</b><span>전체 도장</span></div></div></div>';
+  h+='<div class="home-hero"><div class="ava">'+avatarHTML()+'</div><div class="stats">'
+    +'<div class="stat"><b>🔥'+currentStreak()+'</b><span>연속</span></div>'
+    +'<div class="stat"><b>'+monthCount(y,m)+'</b><span>이번 달</span></div>'
+    +'<div class="stat"><b>'+s.size+'</b><span>전체 도장</span></div>'
+    +'<div class="stat"><b>🪙'+getCoins()+'</b><span>코인</span></div></div></div>';
+  h+='<div class="today-card"><div class="tc-top"><span class="tc-label">📌 오늘의 연습</span>'
+    +'<span class="tc-adj"><button type="button" class="navb sm" aria-label="진도 하나 뒤로" onclick="progShift(-1)">‹</button>'
+    +'<button type="button" class="navb sm" aria-label="진도 하나 앞으로" onclick="progShift(1)">›</button></span></div>'
+    +'<div class="tc-main">'+(p.m+1)+'개월차 · '+(p.w+1)+'주차 · '+pd.emoji+' '+pd.title+'</div>'
+    +'<div class="tc-sub">'+pd.sub+' · 이번 주 방법: '+ROTATION[p.w][1]+'</div>'
+    +'<div class="tc-gauge"><div style="width:'+progPct()+'%"></div></div>'
+    +'<div class="tc-pct">1년 전체 진도 '+progPct()+'% <span>(한 달 = 같은 7일 × 4주)</span></div>'
+    +'<button type="button" class="tc-go" onclick="goToday()">오늘 스크립트 열기 →</button></div>';
   h+='<button class="bigstamp'+(todayStamped?' done':'')+'" type="button" onclick="stampToday()">'
-    +(todayStamped?'오늘 도장 완료! 🎉<small>잘했어요 · 다시 누르면 취소</small>':'오늘 연습 끝! 도장 쾅 🟢')+'</button>';
+    +(todayStamped?'오늘 도장 완료! 🎉<small>잘했어요 · 다시 누르면 취소</small>':'오늘 연습 끝! 도장 쾅 🟢<small>도장 1개 = 🪙10 + 진도 한 칸</small>')+'</button>';
   h+='<div class="cal"><div class="cal-head">'
     +'<button class="navb" type="button" aria-label="이전 달" onclick="calShift(-1)">‹</button>'
     +'<div class="cal-title">'+y+'년 '+m+'월</div>'
@@ -1586,20 +1705,23 @@ function homeHTML(y,m){
   }
   h+='</div></div>';
   h+='<p class="home-note">날짜를 톡 누르면 도장을 찍거나 지울 수 있어요.<br>미래 날짜는 아직 찍을 수 없어요. 매일 연습하고 🔥 연속 일수를 늘려봐요!</p>';
+  h+=shopHTML();
   justStamped=null;
   return h;
 }
 function stampToday(){
   const d=new Date(); const k=dkey(d); const s=stampSet();
-  if(s.has(k)){s.delete(k);} else {s.add(k); justStamped=k;}
-  saveStamps(s);
+  if(s.has(k)){ s.delete(k); saveStamps(s); coinOnRemove(); shiftProg(-1); }
+  else { s.add(k); justStamped=k; saveStamps(s); coinOnAdd(); shiftProg(1); }
   calView={y:d.getFullYear(), m:d.getMonth()+1}; // 오늘이 보이는 달로
   render();
 }
 function toggleStamp(key){
   const s=stampSet();
-  if(s.has(key)){s.delete(key);} else {s.add(key); justStamped=key;}
-  saveStamps(s); render();
+  const isToday = key===dkey(new Date());
+  if(s.has(key)){ s.delete(key); saveStamps(s); coinOnRemove(); if(isToday)shiftProg(-1); }
+  else { s.add(key); justStamped=key; saveStamps(s); coinOnAdd(); if(isToday)shiftProg(1); }
+  render();
 }
 function calShift(dir){
   let mm=calView.m+dir, yy=calView.y;
@@ -1645,5 +1767,53 @@ render=function(){
 })();
 render();
 </script>
+
+<style>
+  /* ===== 오늘의 연습 · 코인 · 상점 · 토스트 ===== */
+  .home-hero .stats{gap:5px;}
+  .home-hero .stat{padding:7px 2px;}
+  .home-hero .stat b{font-size:15.5px;}
+  .home-hero .stat span{font-size:10.5px;}
+  .ava{position:relative;}
+  .ava .acc{position:absolute;font-size:20px;line-height:1;}
+  .ava .acc.hat{top:-12px;right:-8px;}
+  .ava .acc.hand{bottom:-6px;left:-12px;}
+  .today-card{background:var(--card);border:1px solid var(--line);border-radius:18px;
+    padding:14px;box-shadow:var(--shadow);margin-bottom:14px;}
+  .tc-top{display:flex;justify-content:space-between;align-items:center;}
+  .tc-label{font-size:13px;font-weight:800;color:var(--pink-d);}
+  .tc-adj{display:flex;gap:6px;}
+  .navb.sm{width:28px;height:28px;font-size:15px;}
+  .tc-main{font-size:16.5px;font-weight:800;margin:8px 0 2px;line-height:1.4;}
+  .tc-sub{font-size:12.5px;color:var(--soft);line-height:1.5;}
+  .tc-gauge{height:8px;background:#f3e8f0;border-radius:99px;margin-top:10px;overflow:hidden;}
+  .tc-gauge div{height:100%;background:linear-gradient(90deg,var(--pink),var(--pink-d));border-radius:99px;}
+  .tc-pct{font-size:11.5px;color:var(--soft);margin:4px 0 10px;font-variant-numeric:tabular-nums;}
+  .tc-go{display:block;width:100%;border:none;cursor:pointer;border-radius:12px;padding:11px;
+    font-size:15px;font-weight:800;color:#fff;background:var(--blue);box-shadow:0 4px 10px rgba(90,169,255,.3);}
+  .tc-go:active{transform:translateY(1px);}
+  .shop{background:var(--card);border:1px solid var(--line);border-radius:18px;
+    padding:14px;box-shadow:var(--shadow);margin-top:14px;}
+  .shop-head{display:flex;justify-content:space-between;align-items:center;}
+  .shop-head h3{margin:0;font-size:16px;font-weight:800;}
+  .coinchip{background:#fff6da;color:#8a6d2f;font-weight:800;border-radius:999px;
+    padding:4px 12px;font-size:14px;font-variant-numeric:tabular-nums;}
+  .shop-slot{font-size:12.5px;font-weight:800;color:var(--soft);margin:12px 0 6px;}
+  .shop-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;}
+  .item{border:1px solid var(--line);background:#faf6fa;border-radius:12px;padding:8px 2px 7px;
+    display:flex;flex-direction:column;align-items:center;gap:1px;cursor:pointer;}
+  .item .ie{font-size:24px;line-height:1.2;}
+  .item .in{font-size:11px;font-weight:700;color:var(--ink);}
+  .item .ip{font-size:10.5px;font-weight:800;color:#8a6d2f;}
+  .item.own .ip{color:var(--blue);}
+  .item.eq{border-color:var(--pink);background:#fff0f7;}
+  .item.eq .ip{color:var(--pink-d);}
+  .item:focus-visible{outline:2px solid var(--pink-d);outline-offset:1px;}
+  #toast{position:fixed;left:50%;transform:translateX(-50%);bottom:130px;max-width:88%;
+    background:#33303a;color:#fff;padding:10px 18px;border-radius:999px;font-weight:700;
+    font-size:14px;z-index:60;opacity:0;pointer-events:none;transition:opacity .25s;text-align:center;}
+  #toast.show{opacity:.95;}
+</style>
+<div id="toast" role="status" aria-live="polite"></div>
 </body>
 </html>

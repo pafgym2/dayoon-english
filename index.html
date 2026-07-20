@@ -901,7 +901,7 @@ render=function(){
 (function(){
   let c={m:-3,d:0};
   try{const s=localStorage.getItem('dayoon_pos_v3'); if(s){const p=JSON.parse(s);
-    if(p&&typeof p.m==='number'&&p.m>=-3&&p.m<MONTHS.length){c=p;
+    if(p&&typeof p.m==='number'&&p.m>=-4&&p.m<MONTHS.length){c=p;
       if(typeof c.w!=='number'||c.w<0||c.w>3)c.w=0;
       if(c.m>=0&&!(MONTHS[c.m]&&MONTHS[c.m].weeks&&MONTHS[c.m].weeks[c.w]&&MONTHS[c.m].weeks[c.w].days[c.d]))c.d=0;}
   }}catch(e){}
@@ -1199,6 +1199,208 @@ if('serviceWorker' in navigator && location.hostname.indexOf('github.io')>-1){
 }
 
 /* 따라 말하기 버튼 반영해서 다시 그리기 */
+render();
+</script>
+
+<style>
+  /* ===== 🆘 수업 SOS 100문장 ===== */
+  .sos-intro{background:#fff0f7;border:1px solid #ffd9ec;border-radius:14px;padding:12px 14px;margin-bottom:14px;
+    font-size:13.5px;color:var(--pink-d);font-weight:700;line-height:1.6;}
+  .sos-cat{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);
+    margin-bottom:12px;overflow:hidden;}
+  .sos-cat > h3{margin:0;padding:13px 15px;font-size:15px;font-weight:800;display:flex;align-items:center;gap:8px;
+    cursor:pointer;background:#fff;}
+  .sos-cat > h3 .cnt{margin-left:auto;font-size:12px;font-weight:700;color:var(--soft);}
+  .sos-cat > h3 .arw{transition:transform .2s;color:var(--pink-d);}
+  .sos-cat.open > h3 .arw{transform:rotate(90deg);}
+  .sos-list{display:none;padding:0 15px 10px;}
+  .sos-cat.open .sos-list{display:block;}
+  .sos-item{padding:9px 0;border-top:1px solid var(--line);}
+  .sos-en{font-size:15.5px;font-weight:800;display:flex;align-items:flex-start;gap:6px;}
+  .sos-ko{font-size:13px;color:var(--soft);margin-top:2px;}
+  .sos-when{font-size:12px;color:#a07aae;margin-top:2px;}
+</style>
+
+<script>
+/* ============ 🆘 수업 SOS — 화상영어 실전 100문장 ============ */
+/* 10가지 상황 × 10문장. [영어, 한글뜻, 언제 쓰나] */
+const SOS100=[
+ {emoji:"🙋", t:"수업 시작·인사", items:[
+   ["Hello! Can you hear me?","안녕하세요! 제 소리 들려요?","수업 시작할 때"],
+   ["Hi! Nice to see you again.","안녕하세요! 또 만나서 반가워요.","선생님 다시 만났을 때"],
+   ["I'm ready to start.","시작할 준비 됐어요.","수업 시작 준비됐을 때"],
+   ["How are you today, teacher?","선생님, 오늘 어떠세요?","먼저 안부 물을 때"],
+   ["My name is Dayoon. I'm ten.","제 이름은 다윤이고 열 살이에요.","자기소개할 때"],
+   ["Can we start now?","이제 시작해도 돼요?","시작하고 싶을 때"],
+   ["I'm a little nervous, but okay!","조금 떨리지만 괜찮아요!","긴장될 때 솔직하게"],
+   ["I'm excited for today's class.","오늘 수업 기대돼요.","신날 때"],
+   ["What are we going to do today?","오늘 뭐 할 거예요?","수업 내용 궁금할 때"],
+   ["Let's begin!","시작해요!","기운차게 시작"]
+ ]},
+ {emoji:"🤔", t:"못 알아들었을 때", items:[
+   ["Can you say that again, please?","다시 말해 주시겠어요?","한 번 더 듣고 싶을 때"],
+   ["Sorry, I didn't catch that.","죄송해요, 못 알아들었어요.","놓쳤을 때"],
+   ["Can you speak slowly, please?","천천히 말해 주시겠어요?","너무 빠를 때"],
+   ["One more time, please.","한 번만 더요.","짧게 다시 요청"],
+   ["I don't understand.","이해가 안 돼요.","이해 못 했을 때"],
+   ["What does that mean?","그게 무슨 뜻이에요?","단어 뜻 물을 때"],
+   ["Sorry, what?","네? 뭐라고요?","가볍게 되물을 때"],
+   ["Can you explain that again?","다시 설명해 주시겠어요?","설명이 필요할 때"],
+   ["I missed the last word.","마지막 단어를 놓쳤어요.","일부만 놓쳤을 때"],
+   ["Could you write it in the chat?","채팅에 써 주실 수 있어요?","글자로 보고 싶을 때"]
+ ]},
+ {emoji:"💭", t:"생각할 시간이 필요할 때", items:[
+   ["Hmm, let me think.","음, 생각해 볼게요.","생각할 시간 벌 때"],
+   ["Just a second, please.","잠깐만요.","잠시 멈추고 싶을 때"],
+   ["Give me a moment.","잠깐 시간 주세요.","조금 더 여유 필요할 때"],
+   ["I'm thinking about it.","생각하고 있어요.","고민 중일 때"],
+   ["Let me see...","어디 보자...","떠올리는 중"],
+   ["Wait, I know this one!","잠깐, 이거 알아요!","답이 떠오를 때"],
+   ["Can I have a little more time?","시간을 조금 더 주실 수 있어요?","시간이 더 필요할 때"],
+   ["Almost! Let me try again.","거의 다 됐어요! 다시 해 볼게요.","다시 시도할 때"],
+   ["Okay, I've got it now.","자, 이제 알겠어요.","답을 찾았을 때"],
+   ["That's a hard question!","어려운 질문이네요!","솔직하게 어렵다고"]
+ ]},
+ {emoji:"🗣️", t:"영어로 말이 안 나올 때", items:[
+   ["I don't know how to say it in English.","영어로 어떻게 말하는지 모르겠어요.","표현을 모를 때"],
+   ["How do you say '___' in English?","'___'는 영어로 뭐예요?","단어를 물을 때"],
+   ["What's the word for this?","이건 영어로 뭐라고 해요?","물건 가리키며"],
+   ["I know it in Korean, but not in English.","한국어로는 아는데 영어로는 몰라요.","답은 아는데 표현이 안 될 때"],
+   ["Can I show you instead?","대신 보여드려도 돼요?","말 대신 보여줄 때"],
+   ["Is this correct?","이거 맞아요?","확인받고 싶을 때"],
+   ["How do you spell that?","그거 철자가 어떻게 돼요?","철자 물을 때"],
+   ["I want to say something, but it's hard.","말하고 싶은데 어려워요.","막힐 때 솔직하게"],
+   ["Can you help me say it?","말하는 거 도와주실 수 있어요?","도움 요청"],
+   ["Um... how do I explain this?","음... 이걸 어떻게 설명하죠?","설명이 막힐 때"]
+ ]},
+ {emoji:"🚻", t:"화장실·물·잠깐 자리 비울 때", items:[
+   ["Can I go to the bathroom, please?","화장실 가도 될까요?","화장실 가고 싶을 때 ⭐"],
+   ["I need to use the bathroom.","화장실에 가야 해요.","급할 때"],
+   ["I'll be right back.","금방 올게요.","잠깐 나갈 때"],
+   ["Can I get some water?","물 좀 마셔도 될까요?","목마를 때"],
+   ["Just a minute, please.","잠깐만요.","잠시 기다려달라고"],
+   ["Sorry, I need a short break.","죄송해요, 잠깐 쉬어야 해요.","쉬는 시간 필요할 때"],
+   ["My mom is calling me. One moment.","엄마가 불러요. 잠깐만요.","가족이 부를 때"],
+   ["I'm back! Sorry about that.","돌아왔어요! 죄송해요.","자리에 돌아와서"],
+   ["Can we pause for a second?","잠깐 멈춰도 될까요?","잠시 멈추고 싶을 때"],
+   ["Thank you for waiting.","기다려 주셔서 감사해요.","돌아온 뒤 인사"]
+ ]},
+ {emoji:"📶", t:"소리·화면·인터넷 문제", items:[
+   ["I can't hear you.","소리가 안 들려요.","선생님 소리 안 날 때"],
+   ["Your voice is breaking up.","소리가 끊겨요.","음성이 끊길 때"],
+   ["Can you hear me now?","이제 제 소리 들려요?","내 소리 확인할 때"],
+   ["My screen is frozen.","화면이 멈췄어요.","화면 정지될 때"],
+   ["The internet is slow today.","오늘 인터넷이 느려요.","연결이 느릴 때"],
+   ["Please wait, I'll reconnect.","기다려 주세요, 다시 접속할게요.","재접속할 때"],
+   ["I can't see your screen.","선생님 화면이 안 보여요.","화면 공유 안 보일 때"],
+   ["Can you turn on your camera?","카메라 켜 주실 수 있어요?","카메라 요청"],
+   ["It's working now!","이제 돼요!","문제 해결됐을 때"],
+   ["Sorry, my microphone was off.","죄송해요, 마이크가 꺼져 있었어요.","마이크 꺼졌을 때"]
+ ]},
+ {emoji:"✅", t:"틀렸을 때·다시 할 때", items:[
+   ["Oops, I made a mistake.","앗, 실수했어요.","틀렸을 때"],
+   ["Sorry, let me try again.","죄송해요, 다시 해 볼게요.","다시 시도"],
+   ["Was that right?","방금 맞았어요?","확인할 때"],
+   ["I think I was wrong.","제가 틀린 것 같아요.","틀린 걸 알았을 때"],
+   ["Can you correct me?","고쳐 주실 수 있어요?","교정 부탁"],
+   ["How do I say it correctly?","어떻게 말해야 맞아요?","올바른 표현 물을 때"],
+   ["Oh, I see my mistake now.","아, 이제 제 실수를 알겠어요.","실수 이해했을 때"],
+   ["Let me say the whole sentence again.","문장 전체를 다시 말해 볼게요.","문장 다시 말할 때"],
+   ["Is my pronunciation okay?","제 발음 괜찮아요?","발음 확인"],
+   ["Thank you for fixing that.","고쳐 주셔서 감사해요.","교정받은 뒤"]
+ ]},
+ {emoji:"🙋‍♀️", t:"질문하고 부탁할 때", items:[
+   ["I have a question.","질문이 있어요.","질문 시작할 때"],
+   ["Can I ask you something?","뭐 하나 물어봐도 돼요?","물어보기 전에"],
+   ["What should I do now?","이제 뭘 하면 돼요?","다음 할 일 물을 때"],
+   ["Can you give me an example?","예를 들어 주실 수 있어요?","예시 부탁"],
+   ["Can you repeat the question?","질문을 다시 해 주시겠어요?","질문 다시 듣고 싶을 때"],
+   ["Which one should I choose?","어느 걸 골라야 해요?","선택이 헷갈릴 때"],
+   ["Can we do it together?","같이 해도 돼요?","함께 하고 싶을 때"],
+   ["Can you help me, please?","도와주시겠어요?","도움 요청"],
+   ["Is it my turn?","제 차례예요?","차례 물을 때"],
+   ["What page are we on?","몇 페이지예요?","페이지 물을 때"]
+ ]},
+ {emoji:"💬", t:"대답·리액션 (짧고 자연스럽게)", items:[
+   ["Yes, that's right!","네, 맞아요!","맞을 때"],
+   ["I think so too.","저도 그렇게 생각해요.","동의할 때"],
+   ["Really? That's cool!","정말요? 멋져요!","놀라며 리액션"],
+   ["I'm not sure.","잘 모르겠어요.","확신이 없을 때"],
+   ["Maybe. / I think so.","아마도요. / 그런 것 같아요.","애매할 때"],
+   ["That's interesting!","흥미로워요!","재밌을 때"],
+   ["I agree with you.","동의해요.","의견에 찬성"],
+   ["I don't think so.","그렇게 생각하지 않아요.","반대할 때"],
+   ["Good idea!","좋은 생각이에요!","제안이 좋을 때"],
+   ["Can I answer?","제가 대답해도 돼요?","대답하고 싶을 때"]
+ ]},
+ {emoji:"👋", t:"칭찬받을 때·수업 마칠 때", items:[
+   ["Thank you! / Thank you so much.","감사해요! / 정말 감사해요.","고마울 때"],
+   ["That was fun!","재밌었어요!","수업이 즐거웠을 때"],
+   ["I learned a lot today.","오늘 많이 배웠어요.","배운 게 많을 때"],
+   ["See you next time!","다음에 봐요!","헤어질 때"],
+   ["Have a good day!","좋은 하루 보내세요!","작별 인사"],
+   ["Can you say that one more time before we finish?","끝나기 전에 한 번 더 말해 주실래요?","마지막 확인"],
+   ["What's my homework?","숙제가 뭐예요?","숙제 물을 때"],
+   ["I'll practice at home.","집에서 연습할게요.","다짐할 때"],
+   ["Thank you for teaching me!","가르쳐 주셔서 감사해요!","수업 끝 인사"],
+   ["Bye! See you on ___.","안녕히 계세요! ___에 봐요.","다음 약속하며"]
+ ]}
+];
+
+function sos100HTML(){
+  let h='<div class="sos-intro">🆘 수업 중에 막히면 이 문장들을 쓰면 돼요!<br>'
+    +'특히 <b>"Can you say that again, please?"</b> 와 <b>"Can I go to the bathroom, please?"</b> 는 꼭 외워두기 💪<br>'
+    +'문장 옆 🔊 를 누르면 발음을 들려줘요.</div>';
+  SOS100.forEach(function(cat,ci){
+    h+='<div class="sos-cat'+(ci===0?' open':'')+'"><h3 onclick="this.parentNode.classList.toggle(\'open\')">'
+      +'<span>'+cat.emoji+'</span> '+cat.t+'<span class="cnt">'+cat.items.length+'문장</span><span class="arw">›</span></h3>'
+      +'<div class="sos-list">';
+    cat.items.forEach(function(it){
+      h+='<div class="sos-item"><div class="sos-en">'+it[0]+'</div>'
+        +'<div class="sos-ko">'+it[1]+'</div>'
+        +'<div class="sos-when">💡 '+it[2]+'</div></div>';
+    });
+    h+='</div></div>';
+  });
+  return h;
+}
+
+/* SOS 문장에 발음 버튼 부착 (.sos-en 텍스트) */
+function addSosSpeakers(){
+  document.querySelectorAll('#main .sos-en').forEach(function(el){
+    if(el.querySelector('.spk'))return;
+    let t=el.textContent.trim();
+    if(!/[a-zA-Z]/.test(t))return;
+    el.appendChild(spkBtn(t));
+  });
+}
+
+function addSosChip(active){
+  const b=document.createElement('button');
+  b.className='mchip'+(active?' active':'');
+  b.innerHTML='🆘<small>수업 SOS</small>';
+  b.onclick=function(){cur={m:-4,d:0}; render();};
+  // 홈 다음, 안내 앞에 넣기 (홈=첫번째)
+  const home=monthsEl.children[0];
+  if(home&&home.nextSibling)monthsEl.insertBefore(b,home.nextSibling);
+  else monthsEl.appendChild(b);
+}
+
+const _renderBeforeSos=render;
+render=function(){
+  if(cur.m===-4){
+    renderMonths(); addTestChip(false); addHomeChip(false); addSosChip(true);
+    tabsEl.style.display='none';
+    qEl.innerHTML='<b>🆘 수업 SOS</b> · 화상영어 중에 막힐 때 쓰는 100문장';
+    mainEl.innerHTML='<div class="panel">'+sos100HTML()+'</div>';
+    addSosSpeakers();
+    try{localStorage.setItem('dayoon_pos_v3',JSON.stringify(cur));}catch(e){}
+    window.scrollTo({top:0});
+    return;
+  }
+  _renderBeforeSos();
+  addSosChip(false);
+};
 render();
 </script>
 </body>

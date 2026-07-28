@@ -726,62 +726,152 @@ function goToday(){ const p=getProg(); cur={m:p.m,w:p.w,d:p.d}; render(); }
 function progShift(dir){ shiftProg(dir); render(); }
 
 /* --- 🎨 아바타 & 꾸미기 상점 --- */
+/* r: 등급 c=일반 r=레어 e=에픽 l=전설. bg 아이템은 css(배경) 보유. 기존 id 유지(구매기록 호환) */
 const ITEMS=[
-  {id:'pet_dog',    slot:'pet', e:'🐶', n:'강아지',  p:0},
-  {id:'pet_cat',    slot:'pet', e:'🐱', n:'고양이',  p:120},
-  {id:'pet_rabbit', slot:'pet', e:'🐰', n:'토끼',    p:150},
-  {id:'pet_fox',    slot:'pet', e:'🦊', n:'여우',    p:180},
-  {id:'pet_panda',  slot:'pet', e:'🐼', n:'판다',    p:250},
-  {id:'pet_unicorn',slot:'pet', e:'🦄', n:'유니콘',  p:500},
-  {id:'hat_ribbon', slot:'hat', e:'🎀', n:'리본',    p:60},
-  {id:'hat_flower', slot:'hat', e:'🌸', n:'꽃',      p:70},
-  {id:'hat_cap',    slot:'hat', e:'🧢', n:'모자',    p:80},
-  {id:'hat_star',   slot:'hat', e:'⭐', n:'별',      p:90},
-  {id:'hat_crown',  slot:'hat', e:'👑', n:'왕관',    p:200},
-  {id:'hand_balloon',slot:'hand',e:'🎈', n:'풍선',   p:50},
-  {id:'hand_candy', slot:'hand', e:'🍭', n:'사탕',   p:60},
-  {id:'hand_pencil',slot:'hand', e:'✏️', n:'연필',   p:80},
-  {id:'hand_art',   slot:'hand', e:'🎨', n:'물감',   p:100},
-  {id:'hand_skate', slot:'hand', e:'⛸️', n:'스케이트',p:150}
+  // 🐾 친구(캐릭터)
+  {id:'pet_dog',    slot:'pet', e:'🐶', n:'강아지',  p:0,   r:'c'},
+  {id:'pet_cat',    slot:'pet', e:'🐱', n:'고양이',  p:100, r:'c'},
+  {id:'pet_rabbit', slot:'pet', e:'🐰', n:'토끼',    p:120, r:'c'},
+  {id:'pet_bear',   slot:'pet', e:'🐻', n:'곰돌이',  p:140, r:'c'},
+  {id:'pet_penguin',slot:'pet', e:'🐧', n:'펭귄',    p:180, r:'r'},
+  {id:'pet_fox',    slot:'pet', e:'🦊', n:'여우',    p:200, r:'r'},
+  {id:'pet_panda',  slot:'pet', e:'🐼', n:'판다',    p:240, r:'r'},
+  {id:'pet_tiger',  slot:'pet', e:'🐯', n:'호랑이',  p:320, r:'e'},
+  {id:'pet_unicorn',slot:'pet', e:'🦄', n:'유니콘',  p:550, r:'l'},
+  {id:'pet_dragon', slot:'pet', e:'🐲', n:'아기용',  p:750, r:'l'},
+  // 🎩 머리
+  {id:'hat_ribbon', slot:'hat', e:'🎀', n:'리본',    p:50,  r:'c'},
+  {id:'hat_flower', slot:'hat', e:'🌸', n:'꽃',      p:60,  r:'c'},
+  {id:'hat_cap',    slot:'hat', e:'🧢', n:'모자',    p:80,  r:'c'},
+  {id:'hat_star',   slot:'hat', e:'⭐', n:'별',      p:90,  r:'c'},
+  {id:'hat_tophat', slot:'hat', e:'🎩', n:'중절모',  p:110, r:'r'},
+  {id:'hat_grad',   slot:'hat', e:'🎓', n:'학사모',  p:130, r:'r'},
+  {id:'hat_sunhat', slot:'hat', e:'👒', n:'밀짚모자',p:150, r:'r'},
+  {id:'hat_helmet', slot:'hat', e:'⛑️', n:'안전모',  p:170, r:'r'},
+  {id:'hat_crown',  slot:'hat', e:'👑', n:'왕관',    p:350, r:'e'},
+  {id:'hat_sparkle',slot:'hat', e:'✨', n:'반짝반짝',p:600, r:'l'},
+  // 🕶️ 얼굴
+  {id:'face_glasses',slot:'face',e:'👓', n:'안경',    p:60,  r:'c'},
+  {id:'face_sun',   slot:'face',e:'🕶️', n:'선글라스',p:90,  r:'c'},
+  {id:'face_goggles',slot:'face',e:'🥽',n:'물안경',  p:120, r:'r'},
+  {id:'face_mask',  slot:'face',e:'🎭', n:'가면',    p:160, r:'r'},
+  {id:'face_scuba', slot:'face',e:'🤿', n:'스쿠버',  p:220, r:'e'},
+  // 🎀 목
+  {id:'neck_tie',   slot:'neck',e:'👔', n:'넥타이',  p:70,  r:'c'},
+  {id:'neck_scarf', slot:'neck',e:'🧣', n:'목도리',  p:90,  r:'c'},
+  {id:'neck_bell',  slot:'neck',e:'🔔', n:'방울',    p:110, r:'r'},
+  {id:'neck_medal', slot:'neck',e:'🏅', n:'메달',    p:200, r:'r'},
+  {id:'neck_gem',   slot:'neck',e:'💎', n:'보석목걸이',p:450,r:'e'},
+  // 🎈 손
+  {id:'hand_balloon',slot:'hand',e:'🎈', n:'풍선',   p:40,  r:'c'},
+  {id:'hand_candy', slot:'hand', e:'🍭', n:'사탕',   p:50,  r:'c'},
+  {id:'hand_icecream',slot:'hand',e:'🍦',n:'아이스크림',p:70,r:'c'},
+  {id:'hand_pencil',slot:'hand', e:'✏️', n:'연필',   p:80,  r:'c'},
+  {id:'hand_art',   slot:'hand', e:'🎨', n:'물감',   p:100, r:'c'},
+  {id:'hand_book',  slot:'hand', e:'📚', n:'책',     p:110, r:'r'},
+  {id:'hand_soccer',slot:'hand', e:'⚽', n:'축구공',  p:120, r:'r'},
+  {id:'hand_flower',slot:'hand', e:'💐', n:'꽃다발',  p:140, r:'r'},
+  {id:'hand_skate', slot:'hand', e:'⛸️', n:'스케이트',p:150, r:'r'},
+  {id:'hand_guitar',slot:'hand', e:'🎸', n:'기타',   p:260, r:'e'},
+  {id:'hand_wand',  slot:'hand', e:'🪄', n:'요술봉',  p:320, r:'e'},
+  {id:'hand_star',  slot:'hand', e:'🌟', n:'별봉',   p:520, r:'l'},
+  // 🖼️ 배경
+  {id:'bg_none',    slot:'bg', e:'⬜', n:'기본',    p:0,   r:'c', css:'linear-gradient(135deg,#ffd9ec,#ffeaf4)'},
+  {id:'bg_sky',     slot:'bg', e:'☁️', n:'하늘',    p:60,  r:'c', css:'linear-gradient(160deg,#bce4ff,#e8f6ff)'},
+  {id:'bg_sunny',   slot:'bg', e:'🌤️', n:'맑은 날', p:80,  r:'c', css:'linear-gradient(160deg,#fff3b0,#ffe08a)'},
+  {id:'bg_rainbow', slot:'bg', e:'🌈', n:'무지개',  p:150, r:'r', css:'linear-gradient(135deg,#ff9a9e,#fad0c4,#fbc2eb,#a6c1ee)'},
+  {id:'bg_stars',   slot:'bg', e:'🌙', n:'별밤',    p:180, r:'r', css:'linear-gradient(160deg,#2b2d5b,#4b4a8a)'},
+  {id:'bg_beach',   slot:'bg', e:'🏖️', n:'바다',    p:200, r:'r', css:'linear-gradient(160deg,#bce4ff,#ffe9b0)'},
+  {id:'bg_forest',  slot:'bg', e:'🌲', n:'숲',      p:220, r:'r', css:'linear-gradient(160deg,#bfe6c0,#7fc98a)'},
+  {id:'bg_space',   slot:'bg', e:'🚀', n:'우주',    p:400, r:'e', css:'linear-gradient(160deg,#1a1a3a,#3a2a6a)'},
+  {id:'bg_castle',  slot:'bg', e:'🏰', n:'성',      p:450, r:'e', css:'linear-gradient(160deg,#d8c8f0,#b39ddb)'},
+  {id:'bg_aurora',  slot:'bg', e:'🌌', n:'오로라',  p:700, r:'l', css:'linear-gradient(160deg,#134e5e,#5fa47a,#c2ffd8)'}
 ];
-function getAva(){ const a=lsGet('dayoon_avatar',null); return (a&&a.eq)?a:{owned:['pet_dog'],eq:{pet:'pet_dog',hat:null,hand:null}}; }
+const RLBL={c:'일반',r:'레어',e:'에픽',l:'전설'};
+const SLOTS=['pet','hat','face','neck','hand','bg'];
+const GACHA=120;
+let shopCat='pet';
+
+function getAva(){
+  let a=lsGet('dayoon_avatar',null);
+  if(!a||!a.eq)a={owned:['pet_dog','bg_none'],eq:{pet:'pet_dog'}};
+  if(!a.owned)a.owned=[];
+  if(a.owned.indexOf('pet_dog')<0)a.owned.push('pet_dog');
+  if(a.owned.indexOf('bg_none')<0)a.owned.push('bg_none');
+  SLOTS.forEach(function(s){ if(!(s in a.eq))a.eq[s]=null; });
+  if(!a.eq.pet)a.eq.pet='pet_dog';
+  return a;
+}
 function saveAva(a){ lsSet('dayoon_avatar',a); }
 function itemById(id){ return ITEMS.find(function(i){return i.id===id;}); }
-function avatarHTML(){
-  const a=getAva(), pet=itemById(a.eq.pet)||ITEMS[0];
-  let h='<span class="pet">'+pet.e+'</span>';
-  if(a.eq.hat&&itemById(a.eq.hat))h+='<span class="acc hat">'+itemById(a.eq.hat).e+'</span>';
-  if(a.eq.hand&&itemById(a.eq.hand))h+='<span class="acc hand">'+itemById(a.eq.hand).e+'</span>';
-  return h;
+function bgCss(id){ const b=itemById(id); return (b&&b.css)?b.css:'linear-gradient(135deg,#ffd9ec,#ffeaf4)'; }
+
+function avatarHTML(){ // 홈 상단 미니 아바타
+  const a=getAva(), pet=itemById(a.eq.pet)||itemById('pet_dog');
+  let h='<span class="mini" style="background:'+bgCss(a.eq.bg)+'"><span class="m-pet">'+(pet?pet.e:'🐶')+'</span>';
+  [['hat','m-hat'],['face','m-face'],['neck','m-neck'],['hand','m-hand']].forEach(function(x){
+    const it=itemById(a.eq[x[0]]); if(it)h+='<span class="m-acc '+x[1]+'">'+it.e+'</span>';
+  });
+  return h+'</span>';
+}
+function avatarStageHTML(){ // 상점 큰 무대
+  const a=getAva(), pet=itemById(a.eq.pet)||itemById('pet_dog');
+  let h='<div class="ava-stage" style="background:'+bgCss(a.eq.bg)+'"><span class="st-pet">'+(pet?pet.e:'🐶')+'</span>';
+  [['hat','st-hat'],['face','st-face'],['neck','st-neck'],['hand','st-hand']].forEach(function(x){
+    const it=itemById(a.eq[x[0]]); if(it)h+='<span class="st-acc '+x[1]+'">'+it.e+'</span>';
+  });
+  return h+'</div>';
 }
 function tapItem(id){
   const a=getAva(), it=itemById(id); if(!it)return;
   if(a.owned.indexOf(id)>-1){
     if(it.slot==='pet'){ a.eq.pet=id; showToast(it.e+' '+it.n+' 착용!'); }
-    else if(a.eq[it.slot]===id){ a.eq[it.slot]=null; showToast(it.n+' 벗었어요'); }
+    else if(a.eq[it.slot]===id){ a.eq[it.slot]=(it.slot==='bg'?'bg_none':null); showToast(it.n+' 벗었어요'); }
     else { a.eq[it.slot]=id; showToast(it.e+' '+it.n+' 착용!'); }
     saveAva(a); render(); return;
   }
   const c=getCoins();
   if(c<it.p){ showToast('코인이 부족해요! 도장 '+Math.ceil((it.p-c)/10)+'개 더 모으면 살 수 있어요 💪'); return; }
   setCoins(c-it.p); a.owned.push(id); a.eq[it.slot]=id; saveAva(a);
-  showToast(it.e+' '+it.n+' 샀어요! −'+it.p+' 🪙'); render();
+  showToast(it.e+' '+it.n+' 샀어요! ('+RLBL[it.r]+') −'+it.p+' 🪙'); render();
+}
+function setShopCat(sl){ shopCat=sl; render(); }
+function resetOutfit(){ const a=getAva(); a.eq.hat=a.eq.face=a.eq.neck=a.eq.hand=null; a.eq.bg='bg_none'; saveAva(a); showToast('기본 모습으로! 🧺'); render(); }
+function gacha(){
+  const a=getAva(), c=getCoins();
+  if(c<GACHA){ showToast('뽑기는 🪙'+GACHA+' 필요해요! 도장 '+Math.ceil((GACHA-c)/10)+'개만 더 💪'); return; }
+  const pool=ITEMS.filter(function(i){return i.p>0 && a.owned.indexOf(i.id)<0;});
+  if(!pool.length){ showToast('벌써 다 모았어요! 진짜 대단해요 🏆'); return; }
+  setCoins(c-GACHA);
+  const it=pool[Math.floor(Math.random()*pool.length)];
+  a.owned.push(it.id); a.eq[it.slot]=it.id; saveAva(a);
+  showToast('🎉 '+it.e+' '+it.n+' ('+RLBL[it.r]+') 뽑았어요!');
+  render();
 }
 function shopHTML(){
   const a=getAva(), c=getCoins();
-  const slotName={pet:'동물 친구',hat:'머리 꾸미기',hand:'손에 드는 것'};
+  const cats=[['pet','🐾','친구'],['hat','🎩','머리'],['face','🕶️','얼굴'],['neck','🎀','목'],['hand','🎈','손'],['bg','🖼️','배경']];
+  if(SLOTS.indexOf(shopCat)<0)shopCat='pet';
+  const total=ITEMS.length, own=ITEMS.filter(function(i){return a.owned.indexOf(i.id)>-1;}).length;
   let h='<div class="shop"><div class="shop-head"><h3>🎨 꾸미기 상점</h3><span class="coinchip">🪙 '+c+'</span></div>';
-  ['pet','hat','hand'].forEach(function(sl){
-    h+='<div class="shop-slot">'+slotName[sl]+'</div><div class="shop-grid">';
-    ITEMS.filter(function(i){return i.slot===sl;}).forEach(function(it){
-      const owned=a.owned.indexOf(it.id)>-1, eq=a.eq[sl]===it.id;
-      h+='<button type="button" class="item'+(eq?' eq':'')+(owned?' own':'')+'" onclick="tapItem(\''+it.id+'\')">'
-        +'<span class="ie">'+it.e+'</span><span class="in">'+it.n+'</span>'
-        +'<span class="ip">'+(eq?'착용중':(owned?'착용하기':'🪙'+it.p))+'</span></button>';
-    });
-    h+='</div>';
+  h+='<div class="ava-stage-wrap">'+avatarStageHTML()
+    +'<div class="stage-side"><div class="coll">📖 모은 아이템<b>'+own+' / '+total+'</b></div>'
+    +'<button type="button" class="gacha" onclick="gacha()">🎁 랜덤 뽑기<small>🪙'+GACHA+' · 안 가진 것만!</small></button>'
+    +'<button type="button" class="undress" onclick="resetOutfit()">🧺 다 벗기</button></div></div>';
+  h+='<div class="shopcats">'+cats.map(function(ct){
+    return '<button type="button" class="scat'+(shopCat===ct[0]?' on':'')+'" onclick="setShopCat(\''+ct[0]+'\')">'+ct[1]+'<span>'+ct[2]+'</span></button>';
+  }).join('')+'</div>';
+  h+='<div class="shop-grid">';
+  ITEMS.filter(function(i){return i.slot===shopCat;}).forEach(function(it){
+    const owned=a.owned.indexOf(it.id)>-1, eq=a.eq[it.slot]===it.id, afford=c>=it.p;
+    h+='<button type="button" class="item r-'+it.r+(eq?' eq':'')+(owned?' own':'')+(!owned&&!afford?' lock':'')+'" onclick="tapItem(\''+it.id+'\')">'
+      +((!owned&&afford&&it.p>0)?'<span class="newb">NEW</span>':'')
+      +'<span class="ie">'+it.e+'</span><span class="in">'+it.n+'</span>'
+      +'<span class="ip">'+(eq?'착용중':(owned?'착용':(afford?'🪙'+it.p:'🔒'+it.p)))+'</span>'
+      +'<span class="rz">'+RLBL[it.r]+'</span></button>';
   });
-  h+='<p class="home-note" style="margin:10px 0 0">도장 1개 = 🪙10 · 도장 7개마다 +50 🎁 · 28개마다 +200 🏆</p></div>';
+  h+='</div>';
+  h+='<p class="home-note" style="margin:10px 0 0">도장 1개 = 🪙10 · 7개 +50 🎁 · 28개 +200 🏆 · 등급이 높을수록 특별해요!</p></div>';
   return h;
 }
 
@@ -951,6 +1041,51 @@ render();
   .item.eq{border-color:var(--pink);background:#fff0f7;}
   .item.eq .ip{color:var(--pink-d);}
   .item:focus-visible{outline:2px solid var(--pink-d);outline-offset:1px;}
+  /* ===== 업그레이드 상점 ===== */
+  .home-hero .ava{font-size:0;}
+  .mini{position:relative;display:inline-flex;width:54px;height:54px;border-radius:15px;
+    align-items:center;justify-content:center;overflow:hidden;box-shadow:inset 0 0 0 1px rgba(0,0,0,.06);}
+  .m-pet{font-size:30px;line-height:1;filter:drop-shadow(0 1px 1px rgba(0,0,0,.15));}
+  .m-acc{position:absolute;line-height:1;}
+  .m-hat{font-size:17px;top:0;left:50%;transform:translateX(-50%);}
+  .m-face{font-size:13px;top:45%;left:50%;transform:translate(-50%,-20%);}
+  .m-neck{font-size:13px;bottom:2px;left:50%;transform:translateX(-50%);}
+  .m-hand{font-size:16px;bottom:0;right:1px;}
+  .ava-stage-wrap{display:flex;gap:12px;margin:12px 0 4px;}
+  .ava-stage{position:relative;flex:0 0 auto;width:150px;height:150px;border-radius:20px;overflow:hidden;
+    box-shadow:inset 0 0 0 1px rgba(0,0,0,.06);display:flex;align-items:center;justify-content:center;}
+  .st-pet{font-size:72px;line-height:1;filter:drop-shadow(0 4px 5px rgba(0,0,0,.2));}
+  .st-acc{position:absolute;line-height:1;}
+  .st-hat{font-size:40px;top:8%;left:50%;transform:translateX(-50%);}
+  .st-face{font-size:30px;top:42%;left:50%;transform:translate(-50%,-20%);}
+  .st-neck{font-size:28px;bottom:16%;left:50%;transform:translateX(-50%);}
+  .st-hand{font-size:36px;bottom:12%;right:6%;}
+  .stage-side{flex:1;display:flex;flex-direction:column;gap:7px;justify-content:center;min-width:0;}
+  .coll{background:#fff7fb;border-radius:12px;padding:8px 6px;text-align:center;font-size:11px;color:var(--soft);line-height:1.3;}
+  .coll b{display:block;font-size:19px;color:var(--pink-d);font-variant-numeric:tabular-nums;margin-top:2px;}
+  .gacha{border:none;border-radius:12px;padding:9px 6px;font-weight:800;font-size:14px;cursor:pointer;
+    color:#fff;background:linear-gradient(135deg,#ffb020,#ff7eb3);box-shadow:0 4px 10px rgba(255,126,179,.3);line-height:1.25;}
+  .gacha small{display:block;font-size:10px;font-weight:600;opacity:.95;margin-top:1px;}
+  .gacha:active{transform:translateY(1px);}
+  .undress{border:1px solid var(--line);background:#fff;border-radius:12px;padding:7px;font-weight:700;font-size:12px;cursor:pointer;color:var(--soft);}
+  .shopcats{display:flex;gap:5px;overflow-x:auto;margin:8px 0 10px;scrollbar-width:none;}
+  .shopcats::-webkit-scrollbar{display:none;}
+  .scat{flex:0 0 auto;border:none;background:#f3eef2;border-radius:13px;padding:7px 12px;font-size:19px;
+    cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:1px;color:var(--ink);line-height:1.1;}
+  .scat span{font-size:10px;font-weight:800;color:var(--soft);}
+  .scat.on{background:var(--pink);}
+  .scat.on span{color:#fff;}
+  .item{position:relative;}
+  .item .rz{font-size:9px;font-weight:800;margin-top:1px;letter-spacing:.3px;}
+  .item.r-c{border-color:#e3dbe6;} .item.r-c .rz{color:#a49bab;}
+  .item.r-r{border-color:#9cc9ff;} .item.r-r .rz{color:#2b6fd1;}
+  .item.r-e{border-color:#c9b6ff;} .item.r-e .rz{color:#7c4dff;}
+  .item.r-l{border-color:#ffcf6a;background:linear-gradient(135deg,#fff8e6,#fff0f7);} .item.r-l .rz{color:#e08a00;}
+  .item.lock{opacity:.5;}
+  .item.eq{border-color:var(--pink);background:#fff0f7;box-shadow:0 0 0 1px var(--pink);}
+  .item.eq .rz{color:var(--pink-d);}
+  .newb{position:absolute;top:-6px;right:-4px;background:#ff5a5a;color:#fff;font-size:8px;font-weight:800;
+    padding:1px 5px;border-radius:7px;letter-spacing:.4px;box-shadow:0 1px 3px rgba(0,0,0,.2);}
   #toast{position:fixed;left:50%;transform:translateX(-50%);bottom:130px;max-width:88%;
     background:#33303a;color:#fff;padding:10px 18px;border-radius:999px;font-weight:700;
     font-size:14px;z-index:60;opacity:0;pointer-events:none;transition:opacity .25s;text-align:center;}

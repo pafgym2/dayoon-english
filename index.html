@@ -820,7 +820,8 @@ function bgCss(id){ const b=itemById(id); return (b&&b.css)?b.css:'linear-gradie
 function bodySVG(per){ // 몸: 팔 2개(오른팔은 위로 들어 아이템을 쥠) + 옷 + 다리 + 신발
   const bc=per.bc||'#ff8fb8', pc=per.pc||'#4a5568', skin='#f8c94e';
   const arms='<path d="M36 16 Q18 28 14 46" stroke="'+skin+'" stroke-width="9" fill="none" stroke-linecap="round"/>'
-    +'<path d="M64 16 Q82 10 90 -2" stroke="'+skin+'" stroke-width="9" fill="none" stroke-linecap="round"/>';
+    +'<path d="M64 16 Q82 10 90 -2" stroke="'+skin+'" stroke-width="9" fill="none" stroke-linecap="round"/>'
+    +'<rect x="44" y="-8" width="12" height="18" rx="5" fill="'+skin+'"/>'; // 목
   let torso;
   if(per.bt==='pants'){
     torso='<path d="M50 6 L32 12 Q26 34 30 52 L70 52 Q74 34 68 12 Z" fill="'+bc+'"/>'
@@ -1087,10 +1088,10 @@ render();
   /* 전신 피규어: 이모지 머리 + SVG 몸(팔·옷·다리), 들어올린 오른손에 아이템 */
   .fig{position:relative;width:96px;height:132px;display:inline-block;flex:0 0 auto;}
   .fig .bod{position:absolute;left:0;top:42px;width:96px;height:92px;}
-  .f-head{position:absolute;top:0;left:50%;transform:translateX(-50%);font-size:42px;line-height:1;z-index:2;filter:drop-shadow(0 2px 2px rgba(0,0,0,.12));}
-  .f-hat{position:absolute;top:-18px;left:50%;transform:translateX(-50%);font-size:25px;line-height:1;z-index:3;}
-  .f-face{position:absolute;top:17px;left:50%;transform:translateX(-50%);font-size:17px;line-height:1;z-index:3;}
-  .f-neck{position:absolute;top:44px;left:50%;transform:translateX(-50%);font-size:15px;line-height:1;z-index:3;}
+  .f-head{position:absolute;top:14px;left:50%;transform:translateX(-50%);font-size:42px;line-height:1;z-index:2;filter:drop-shadow(0 2px 2px rgba(0,0,0,.12));}
+  .f-hat{position:absolute;top:-4px;left:50%;transform:translateX(-50%);font-size:25px;line-height:1;z-index:3;}
+  .f-face{position:absolute;top:30px;left:50%;transform:translateX(-50%);font-size:17px;line-height:1;z-index:3;}
+  .f-neck{position:absolute;top:56px;left:50%;transform:translateX(-50%);font-size:15px;line-height:1;z-index:3;}
   .f-hand{position:absolute;top:26px;left:66px;font-size:25px;line-height:1;z-index:3;filter:drop-shadow(0 2px 2px rgba(0,0,0,.15));}
   .fig.full{height:120px;}
   .fig.full .f-head{font-size:60px;top:16px;}

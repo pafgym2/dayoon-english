@@ -728,7 +728,19 @@ function progShift(dir){ shiftProg(dir); render(); }
 /* --- 🎨 아바타 & 꾸미기 상점 --- */
 /* r: 등급 c=일반 r=레어 e=에픽 l=전설. bg 아이템은 css(배경) 보유. 기존 id 유지(구매기록 호환) */
 const ITEMS=[
-  // 🐾 친구(캐릭터)
+  // 🧒 사람 (기본 캐릭터)
+  {id:'person_girl', slot:'person', e:'👧', n:'여자아이',  p:0,   r:'c'},
+  {id:'person_boy',  slot:'person', e:'👦', n:'남자아이',  p:0,   r:'c'},
+  {id:'person_baby', slot:'person', e:'👶', n:'아기',      p:80,  r:'c'},
+  {id:'person_woman',slot:'person', e:'👩', n:'어른 여자', p:120, r:'r'},
+  {id:'person_man',  slot:'person', e:'👨', n:'어른 남자', p:120, r:'r'},
+  {id:'person_queen',slot:'person', e:'👸', n:'공주',      p:280, r:'e'},
+  {id:'person_king', slot:'person', e:'🤴', n:'왕자',      p:280, r:'e'},
+  {id:'person_hero', slot:'person', e:'🦸', n:'슈퍼히어로',p:350, r:'e'},
+  {id:'person_astro',slot:'person', e:'🧑‍🚀',n:'우주인',   p:450, r:'e'},
+  {id:'person_fairy',slot:'person', e:'🧚', n:'요정',      p:600, r:'l'},
+  {id:'person_wizard',slot:'person',e:'🧙', n:'마법사',    p:600, r:'l'},
+  // 🐾 동물 친구 (사람과 함께 키워요!)
   {id:'pet_dog',    slot:'pet', e:'🐶', n:'강아지',  p:0,   r:'c'},
   {id:'pet_cat',    slot:'pet', e:'🐱', n:'고양이',  p:100, r:'c'},
   {id:'pet_rabbit', slot:'pet', e:'🐰', n:'토끼',    p:120, r:'c'},
@@ -788,46 +800,50 @@ const ITEMS=[
   {id:'bg_aurora',  slot:'bg', e:'🌌', n:'오로라',  p:700, r:'l', css:'linear-gradient(160deg,#134e5e,#5fa47a,#c2ffd8)'}
 ];
 const RLBL={c:'일반',r:'레어',e:'에픽',l:'전설'};
-const SLOTS=['pet','hat','face','neck','hand','bg'];
+const SLOTS=['person','pet','hat','face','neck','hand','bg'];
 const GACHA=120;
-let shopCat='pet';
+let shopCat='person';
 
 function getAva(){
   let a=lsGet('dayoon_avatar',null);
-  if(!a||!a.eq)a={owned:['pet_dog','bg_none'],eq:{pet:'pet_dog'}};
+  if(!a||!a.eq)a={owned:['person_girl','person_boy','pet_dog','bg_none'],eq:{person:'person_girl',pet:'pet_dog'}};
   if(!a.owned)a.owned=[];
-  if(a.owned.indexOf('pet_dog')<0)a.owned.push('pet_dog');
-  if(a.owned.indexOf('bg_none')<0)a.owned.push('bg_none');
+  ['person_girl','person_boy','pet_dog','bg_none'].forEach(function(id){ if(a.owned.indexOf(id)<0)a.owned.push(id); });
   SLOTS.forEach(function(s){ if(!(s in a.eq))a.eq[s]=null; });
-  if(!a.eq.pet)a.eq.pet='pet_dog';
+  if(!a.eq.person)a.eq.person='person_girl'; // 구버전(동물만) → 사람 기본 추가, 동물은 컴패니언으로 유지
   return a;
 }
 function saveAva(a){ lsSet('dayoon_avatar',a); }
 function itemById(id){ return ITEMS.find(function(i){return i.id===id;}); }
 function bgCss(id){ const b=itemById(id); return (b&&b.css)?b.css:'linear-gradient(135deg,#ffd9ec,#ffeaf4)'; }
 
-function avatarHTML(){ // 홈 상단 미니 아바타
-  const a=getAva(), pet=itemById(a.eq.pet)||itemById('pet_dog');
-  let h='<span class="mini" style="background:'+bgCss(a.eq.bg)+'"><span class="m-pet">'+(pet?pet.e:'🐶')+'</span>';
+function avatarHTML(){ // 홈 상단 미니 아바타 (사람 + 동물 나란히)
+  const a=getAva(), per=itemById(a.eq.person)||itemById('person_girl'), pet=itemById(a.eq.pet);
+  let h='<span class="mini" style="background:'+bgCss(a.eq.bg)+'"><span class="m-per">'+per.e+'</span>';
   [['hat','m-hat'],['face','m-face'],['neck','m-neck'],['hand','m-hand']].forEach(function(x){
     const it=itemById(a.eq[x[0]]); if(it)h+='<span class="m-acc '+x[1]+'">'+it.e+'</span>';
   });
+  if(pet)h+='<span class="m-pet">'+pet.e+'</span>';
   return h+'</span>';
 }
-function avatarStageHTML(){ // 상점 큰 무대
-  const a=getAva(), pet=itemById(a.eq.pet)||itemById('pet_dog');
-  let h='<div class="ava-stage" style="background:'+bgCss(a.eq.bg)+'"><span class="st-pet">'+(pet?pet.e:'🐶')+'</span>';
+function avatarStageHTML(){ // 상점 큰 무대 (사람 가운데 + 동물 친구 옆에)
+  const a=getAva(), per=itemById(a.eq.person)||itemById('person_girl'), pet=itemById(a.eq.pet);
+  let h='<div class="ava-stage" style="background:'+bgCss(a.eq.bg)+'"><span class="st-per">'+per.e+'</span>';
   [['hat','st-hat'],['face','st-face'],['neck','st-neck'],['hand','st-hand']].forEach(function(x){
     const it=itemById(a.eq[x[0]]); if(it)h+='<span class="st-acc '+x[1]+'">'+it.e+'</span>';
   });
+  if(pet)h+='<span class="st-pet">'+pet.e+'</span>';
   return h+'</div>';
 }
 function tapItem(id){
   const a=getAva(), it=itemById(id); if(!it)return;
   if(a.owned.indexOf(id)>-1){
-    if(it.slot==='pet'){ a.eq.pet=id; showToast(it.e+' '+it.n+' 착용!'); }
-    else if(a.eq[it.slot]===id){ a.eq[it.slot]=(it.slot==='bg'?'bg_none':null); showToast(it.n+' 벗었어요'); }
-    else { a.eq[it.slot]=id; showToast(it.e+' '+it.n+' 착용!'); }
+    if(it.slot==='person'){ a.eq.person=id; showToast(it.e+' '+it.n+'로 변신!'); } // 사람은 항상 있어야 함
+    else if(a.eq[it.slot]===id){
+      a.eq[it.slot]=(it.slot==='bg'?'bg_none':null);
+      showToast(it.slot==='pet'?(it.n+'를 집에 보냈어요 🏠'):(it.n+' 벗었어요'));
+    }
+    else { a.eq[it.slot]=id; showToast(it.slot==='pet'?(it.e+' '+it.n+'와 함께!'):(it.e+' '+it.n+' 착용!')); }
     saveAva(a); render(); return;
   }
   const c=getCoins();
@@ -850,8 +866,8 @@ function gacha(){
 }
 function shopHTML(){
   const a=getAva(), c=getCoins();
-  const cats=[['pet','🐾','친구'],['hat','🎩','머리'],['face','🕶️','얼굴'],['neck','🎀','목'],['hand','🎈','손'],['bg','🖼️','배경']];
-  if(SLOTS.indexOf(shopCat)<0)shopCat='pet';
+  const cats=[['person','🧒','사람'],['pet','🐾','동물'],['hat','🎩','머리'],['face','🕶️','얼굴'],['neck','🎀','목'],['hand','🎈','손'],['bg','🖼️','배경']];
+  if(SLOTS.indexOf(shopCat)<0)shopCat='person';
   const total=ITEMS.length, own=ITEMS.filter(function(i){return a.owned.indexOf(i.id)>-1;}).length;
   let h='<div class="shop"><div class="shop-head"><h3>🎨 꾸미기 상점</h3><span class="coinchip">🪙 '+c+'</span></div>';
   h+='<div class="ava-stage-wrap">'+avatarStageHTML()
@@ -1045,21 +1061,23 @@ render();
   .home-hero .ava{font-size:0;}
   .mini{position:relative;display:inline-flex;width:54px;height:54px;border-radius:15px;
     align-items:center;justify-content:center;overflow:hidden;box-shadow:inset 0 0 0 1px rgba(0,0,0,.06);}
-  .m-pet{font-size:30px;line-height:1;filter:drop-shadow(0 1px 1px rgba(0,0,0,.15));}
+  .m-per{font-size:28px;line-height:1;filter:drop-shadow(0 1px 1px rgba(0,0,0,.15));transform:translateX(-6px);}
+  .m-pet{position:absolute;font-size:17px;line-height:1;bottom:2px;right:2px;filter:drop-shadow(0 1px 1px rgba(0,0,0,.15));}
   .m-acc{position:absolute;line-height:1;}
-  .m-hat{font-size:17px;top:0;left:50%;transform:translateX(-50%);}
-  .m-face{font-size:13px;top:45%;left:50%;transform:translate(-50%,-20%);}
-  .m-neck{font-size:13px;bottom:2px;left:50%;transform:translateX(-50%);}
-  .m-hand{font-size:16px;bottom:0;right:1px;}
+  .m-hat{font-size:15px;top:0;left:44%;transform:translateX(-50%);}
+  .m-face{font-size:12px;top:44%;left:44%;transform:translate(-50%,-20%);}
+  .m-neck{font-size:12px;bottom:4px;left:44%;transform:translateX(-50%);}
+  .m-hand{font-size:14px;bottom:1px;left:2px;}
   .ava-stage-wrap{display:flex;gap:12px;margin:12px 0 4px;}
   .ava-stage{position:relative;flex:0 0 auto;width:150px;height:150px;border-radius:20px;overflow:hidden;
     box-shadow:inset 0 0 0 1px rgba(0,0,0,.06);display:flex;align-items:center;justify-content:center;}
-  .st-pet{font-size:72px;line-height:1;filter:drop-shadow(0 4px 5px rgba(0,0,0,.2));}
+  .st-per{font-size:66px;line-height:1;filter:drop-shadow(0 4px 5px rgba(0,0,0,.2));transform:translate(-14px,-6px);}
+  .st-pet{position:absolute;font-size:38px;line-height:1;bottom:9%;right:8%;filter:drop-shadow(0 2px 3px rgba(0,0,0,.2));}
   .st-acc{position:absolute;line-height:1;}
-  .st-hat{font-size:40px;top:8%;left:50%;transform:translateX(-50%);}
-  .st-face{font-size:30px;top:42%;left:50%;transform:translate(-50%,-20%);}
-  .st-neck{font-size:28px;bottom:16%;left:50%;transform:translateX(-50%);}
-  .st-hand{font-size:36px;bottom:12%;right:6%;}
+  .st-hat{font-size:36px;top:5%;left:41%;transform:translateX(-50%);}
+  .st-face{font-size:26px;top:40%;left:41%;transform:translate(-50%,-20%);}
+  .st-neck{font-size:24px;bottom:26%;left:41%;transform:translateX(-50%);}
+  .st-hand{font-size:32px;bottom:14%;left:6%;}
   .stage-side{flex:1;display:flex;flex-direction:column;gap:7px;justify-content:center;min-width:0;}
   .coll{background:#fff7fb;border-radius:12px;padding:8px 6px;text-align:center;font-size:11px;color:var(--soft);line-height:1.3;}
   .coll b{display:block;font-size:19px;color:var(--pink-d);font-variant-numeric:tabular-nums;margin-top:2px;}

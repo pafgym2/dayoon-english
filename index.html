@@ -728,18 +728,18 @@ function progShift(dir){ shiftProg(dir); render(); }
 /* --- 🎨 아바타 & 꾸미기 상점 --- */
 /* r: 등급 c=일반 r=레어 e=에픽 l=전설. bg 아이템은 css(배경) 보유. 기존 id 유지(구매기록 호환) */
 const ITEMS=[
-  // 🧒 사람 (기본 캐릭터)
-  {id:'person_girl', slot:'person', e:'👧', n:'여자아이',  p:0,   r:'c'},
-  {id:'person_boy',  slot:'person', e:'👦', n:'남자아이',  p:0,   r:'c'},
-  {id:'person_baby', slot:'person', e:'👶', n:'아기',      p:80,  r:'c'},
-  {id:'person_woman',slot:'person', e:'👩', n:'어른 여자', p:120, r:'r'},
-  {id:'person_man',  slot:'person', e:'👨', n:'어른 남자', p:120, r:'r'},
-  {id:'person_queen',slot:'person', e:'👸', n:'공주',      p:280, r:'e'},
-  {id:'person_king', slot:'person', e:'🤴', n:'왕자',      p:280, r:'e'},
-  {id:'person_hero', slot:'person', e:'🦸', n:'슈퍼히어로',p:350, r:'e'},
-  {id:'person_astro',slot:'person', e:'🧑‍🚀',n:'우주인',   p:450, r:'e'},
-  {id:'person_fairy',slot:'person', e:'🧚', n:'요정',      p:600, r:'l'},
-  {id:'person_wizard',slot:'person',e:'🧙', n:'마법사',    p:600, r:'l'},
+  // 🧒 사람 (기본 캐릭터) — bt: 옷 종류(dress/pants), bc: 옷 색, pc: 바지 색, full: 이모지 자체가 전신
+  {id:'person_girl', slot:'person', e:'👧', n:'여자아이',  p:0,   r:'c', bt:'dress', bc:'#ff8fb8'},
+  {id:'person_boy',  slot:'person', e:'👦', n:'남자아이',  p:0,   r:'c', bt:'pants', bc:'#5aa9ff', pc:'#3f6bc9'},
+  {id:'person_baby', slot:'person', e:'👶', n:'아기',      p:80,  r:'c', bt:'dress', bc:'#ffd98a'},
+  {id:'person_woman',slot:'person', e:'👩', n:'어른 여자', p:120, r:'r', bt:'dress', bc:'#ff9d76'},
+  {id:'person_man',  slot:'person', e:'👨', n:'어른 남자', p:120, r:'r', bt:'pants', bc:'#55c98a', pc:'#3d5a80'},
+  {id:'person_queen',slot:'person', e:'👸', n:'공주',      p:280, r:'e', bt:'dress', bc:'#b48be0'},
+  {id:'person_king', slot:'person', e:'🤴', n:'왕자',      p:280, r:'e', bt:'pants', bc:'#4d6bd8', pc:'#2c3e8c'},
+  {id:'person_hero', slot:'person', e:'🦸', n:'슈퍼히어로',p:350, r:'e', full:true},
+  {id:'person_astro',slot:'person', e:'🧑‍🚀',n:'우주인',   p:450, r:'e', full:true},
+  {id:'person_fairy',slot:'person', e:'🧚', n:'요정',      p:600, r:'l', full:true},
+  {id:'person_wizard',slot:'person',e:'🧙', n:'마법사',    p:600, r:'l', full:true},
   // 🐾 동물 친구 (사람과 함께 키워요!)
   {id:'pet_dog',    slot:'pet', e:'🐶', n:'강아지',  p:0,   r:'c'},
   {id:'pet_cat',    slot:'pet', e:'🐱', n:'고양이',  p:100, r:'c'},
@@ -817,21 +817,43 @@ function saveAva(a){ lsSet('dayoon_avatar',a); }
 function itemById(id){ return ITEMS.find(function(i){return i.id===id;}); }
 function bgCss(id){ const b=itemById(id); return (b&&b.css)?b.css:'linear-gradient(135deg,#ffd9ec,#ffeaf4)'; }
 
-function avatarHTML(){ // 홈 상단 미니 아바타 (사람 + 동물 나란히)
-  const a=getAva(), per=itemById(a.eq.person)||itemById('person_girl'), pet=itemById(a.eq.pet);
-  let h='<span class="mini" style="background:'+bgCss(a.eq.bg)+'"><span class="m-per">'+per.e+'</span>';
-  [['hat','m-hat'],['face','m-face'],['neck','m-neck'],['hand','m-hand']].forEach(function(x){
-    const it=itemById(a.eq[x[0]]); if(it)h+='<span class="m-acc '+x[1]+'">'+it.e+'</span>';
-  });
+function bodySVG(per){ // 몸: 팔 2개(오른팔은 위로 들어 아이템을 쥠) + 옷 + 다리 + 신발
+  const bc=per.bc||'#ff8fb8', pc=per.pc||'#4a5568', skin='#f8c94e';
+  const arms='<path d="M36 16 Q18 28 14 46" stroke="'+skin+'" stroke-width="9" fill="none" stroke-linecap="round"/>'
+    +'<path d="M64 16 Q82 10 90 -2" stroke="'+skin+'" stroke-width="9" fill="none" stroke-linecap="round"/>';
+  let torso;
+  if(per.bt==='pants'){
+    torso='<path d="M50 6 L32 12 Q26 34 30 52 L70 52 Q74 34 68 12 Z" fill="'+bc+'"/>'
+      +'<path d="M32 52 L30 88 L44 88 L48 58 L52 58 L56 88 L70 88 L68 52 Z" fill="'+pc+'"/>'
+      +'<ellipse cx="37" cy="92" rx="9" ry="4.5" fill="#5b4636"/><ellipse cx="63" cy="92" rx="9" ry="4.5" fill="#5b4636"/>';
+  } else {
+    torso='<path d="M50 6 L32 12 L20 66 Q50 78 80 66 L68 12 Z" fill="'+bc+'"/>'
+      +'<rect x="39" y="68" width="8" height="20" rx="4" fill="'+skin+'"/>'
+      +'<rect x="53" y="68" width="8" height="20" rx="4" fill="'+skin+'"/>'
+      +'<ellipse cx="43" cy="92" rx="8" ry="4" fill="#5b4636"/><ellipse cx="57" cy="92" rx="8" ry="4" fill="#5b4636"/>';
+  }
+  return '<svg class="bod" viewBox="-4 -8 108 104" aria-hidden="true">'+arms+torso+'</svg>';
+}
+function figureHTML(){ // 사람 전신 = 이모지 머리 + 그려진 몸, 들어올린 손에 아이템
+  const a=getAva(), per=itemById(a.eq.person)||itemById('person_girl');
+  let h='<span class="fig'+(per.full?' full':'')+'">';
+  if(!per.full)h+=bodySVG(per);
+  h+='<span class="f-head">'+per.e+'</span>';
+  const hat=itemById(a.eq.hat); if(hat)h+='<span class="f-hat">'+hat.e+'</span>';
+  const fa=itemById(a.eq.face); if(fa)h+='<span class="f-face">'+fa.e+'</span>';
+  const nk=itemById(a.eq.neck); if(nk)h+='<span class="f-neck">'+nk.e+'</span>';
+  const hd=itemById(a.eq.hand); if(hd)h+='<span class="f-hand">'+hd.e+'</span>';
+  return h+'</span>';
+}
+function avatarHTML(){ // 홈 상단 미니 아바타 (전신 축소 + 동물)
+  const a=getAva(), pet=itemById(a.eq.pet);
+  let h='<span class="mini" style="background:'+bgCss(a.eq.bg)+'">'+figureHTML();
   if(pet)h+='<span class="m-pet">'+pet.e+'</span>';
   return h+'</span>';
 }
-function avatarStageHTML(){ // 상점 큰 무대 (사람 가운데 + 동물 친구 옆에)
-  const a=getAva(), per=itemById(a.eq.person)||itemById('person_girl'), pet=itemById(a.eq.pet);
-  let h='<div class="ava-stage" style="background:'+bgCss(a.eq.bg)+'"><span class="st-per">'+per.e+'</span>';
-  [['hat','st-hat'],['face','st-face'],['neck','st-neck'],['hand','st-hand']].forEach(function(x){
-    const it=itemById(a.eq[x[0]]); if(it)h+='<span class="st-acc '+x[1]+'">'+it.e+'</span>';
-  });
+function avatarStageHTML(){ // 상점 큰 무대 (전신 사람 + 동물 친구)
+  const a=getAva(), pet=itemById(a.eq.pet);
+  let h='<div class="ava-stage" style="background:'+bgCss(a.eq.bg)+'">'+figureHTML();
   if(pet)h+='<span class="st-pet">'+pet.e+'</span>';
   return h+'</div>';
 }
@@ -1061,23 +1083,27 @@ render();
   .home-hero .ava{font-size:0;}
   .mini{position:relative;display:inline-flex;width:54px;height:54px;border-radius:15px;
     align-items:center;justify-content:center;overflow:hidden;box-shadow:inset 0 0 0 1px rgba(0,0,0,.06);}
-  .m-per{font-size:28px;line-height:1;filter:drop-shadow(0 1px 1px rgba(0,0,0,.15));transform:translateX(-6px);}
-  .m-pet{position:absolute;font-size:17px;line-height:1;bottom:2px;right:2px;filter:drop-shadow(0 1px 1px rgba(0,0,0,.15));}
-  .m-acc{position:absolute;line-height:1;}
-  .m-hat{font-size:15px;top:0;left:44%;transform:translateX(-50%);}
-  .m-face{font-size:12px;top:44%;left:44%;transform:translate(-50%,-20%);}
-  .m-neck{font-size:12px;bottom:4px;left:44%;transform:translateX(-50%);}
-  .m-hand{font-size:14px;bottom:1px;left:2px;}
+  .m-pet{position:absolute;font-size:16px;line-height:1;bottom:2px;right:2px;filter:drop-shadow(0 1px 1px rgba(0,0,0,.15));z-index:4;}
+  /* 전신 피규어: 이모지 머리 + SVG 몸(팔·옷·다리), 들어올린 오른손에 아이템 */
+  .fig{position:relative;width:96px;height:132px;display:inline-block;flex:0 0 auto;}
+  .fig .bod{position:absolute;left:0;top:42px;width:96px;height:92px;}
+  .f-head{position:absolute;top:0;left:50%;transform:translateX(-50%);font-size:42px;line-height:1;z-index:2;filter:drop-shadow(0 2px 2px rgba(0,0,0,.12));}
+  .f-hat{position:absolute;top:-18px;left:50%;transform:translateX(-50%);font-size:25px;line-height:1;z-index:3;}
+  .f-face{position:absolute;top:17px;left:50%;transform:translateX(-50%);font-size:17px;line-height:1;z-index:3;}
+  .f-neck{position:absolute;top:44px;left:50%;transform:translateX(-50%);font-size:15px;line-height:1;z-index:3;}
+  .f-hand{position:absolute;top:26px;left:66px;font-size:25px;line-height:1;z-index:3;filter:drop-shadow(0 2px 2px rgba(0,0,0,.15));}
+  .fig.full{height:120px;}
+  .fig.full .f-head{font-size:60px;top:16px;}
+  .fig.full .f-hat{top:-4px;}
+  .fig.full .f-face{top:36px;}
+  .fig.full .f-neck{top:72px;}
+  .fig.full .f-hand{top:56px;left:68px;}
+  .mini .fig{transform:scale(.36);transform-origin:top center;margin-top:2px;}
   .ava-stage-wrap{display:flex;gap:12px;margin:12px 0 4px;}
   .ava-stage{position:relative;flex:0 0 auto;width:150px;height:150px;border-radius:20px;overflow:hidden;
     box-shadow:inset 0 0 0 1px rgba(0,0,0,.06);display:flex;align-items:center;justify-content:center;}
-  .st-per{font-size:66px;line-height:1;filter:drop-shadow(0 4px 5px rgba(0,0,0,.2));transform:translate(-14px,-6px);}
-  .st-pet{position:absolute;font-size:38px;line-height:1;bottom:9%;right:8%;filter:drop-shadow(0 2px 3px rgba(0,0,0,.2));}
-  .st-acc{position:absolute;line-height:1;}
-  .st-hat{font-size:36px;top:5%;left:41%;transform:translateX(-50%);}
-  .st-face{font-size:26px;top:40%;left:41%;transform:translate(-50%,-20%);}
-  .st-neck{font-size:24px;bottom:26%;left:41%;transform:translateX(-50%);}
-  .st-hand{font-size:32px;bottom:14%;left:6%;}
+  .st-pet{position:absolute;font-size:36px;line-height:1;bottom:7%;right:6%;filter:drop-shadow(0 2px 3px rgba(0,0,0,.2));z-index:4;}
+  .ava-stage .fig{transform:translateX(-10px);}
   .stage-side{flex:1;display:flex;flex-direction:column;gap:7px;justify-content:center;min-width:0;}
   .coll{background:#fff7fb;border-radius:12px;padding:8px 6px;text-align:center;font-size:11px;color:var(--soft);line-height:1.3;}
   .coll b{display:block;font-size:19px;color:var(--pink-d);font-variant-numeric:tabular-nums;margin-top:2px;}

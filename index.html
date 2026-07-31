@@ -1324,7 +1324,7 @@ function injectShadowBtn(){
 }
 
 /* --- 📤 백업 / 📥 복원 (부모용) --- */
-const BK_KEYS=['dayoon_stamps','dayoon_coins','dayoon_prog','dayoon_avatar','dayoon_bonuspaid','dayoon_pos_v3','dayoon_fs','dayoon_quizq'];
+const BK_KEYS=['dayoon_stamps','dayoon_coins','dayoon_prog','dayoon_avatar','dayoon_bonuspaid','dayoon_pos_v3','dayoon_fs','dayoon_quizq','dayoon_gift1'];
 function exportData(){
   const o={};
   BK_KEYS.forEach(function(k){try{const v=localStorage.getItem(k); if(v!==null)o[k]=v;}catch(e){}});
@@ -1582,6 +1582,20 @@ render=function(){
   addSosChip(false);
 };
 render();
+
+/* --- 🎁 웰컴 선물: 기기당 한 번, 시작 코인 300 (상점 재미 바로 느끼게) --- */
+(function(){
+  try{
+    if(!localStorage.getItem('dayoon_gift1')){
+      localStorage.setItem('dayoon_gift1','1');
+      setCoins(getCoins()+300);
+      setTimeout(function(){
+        showToast('🎁 다윤이 환영 선물 도착! 🪙300 — 꾸미기 상점에서 마음껏 골라봐!');
+        render();
+      },700);
+    }
+  }catch(e){}
+})();
 </script>
 </body>
 </html>

@@ -1629,6 +1629,14 @@ render();
   .gr-e{background:#efe6ff;color:#7c4dff;} .gr-l{background:#fff3d6;color:#e08a00;}
   .gclose{display:block;width:100%;border:none;border-radius:12px;padding:12px;margin-top:16px;font-size:15px;
     font-weight:800;color:#fff;background:linear-gradient(135deg,var(--pink),var(--pink-d));cursor:pointer;}
+  .mchip,.tab{position:relative;}
+  .tick{position:absolute;top:-5px;right:-3px;background:#34c77b;color:#fff;border-radius:999px;
+    font-size:9px;font-weight:800;padding:1.5px 4.5px;line-height:1.2;box-shadow:0 1px 3px rgba(0,0,0,.25);pointer-events:none;}
+  .tick.part{background:#ffb020;}
+  .tick.now{background:var(--pink-d);}
+  .done-chip{display:inline-block;vertical-align:middle;margin-left:8px;background:#e2f8ec;color:#1f8a5b;
+    font-size:12px;font-weight:800;border-radius:999px;padding:3px 10px;}
+  .done-chip.todo{background:#fff0f7;color:var(--pink-d);}
   .testpic{margin:4px 0 10px;}
   .testpic svg{width:100%;height:auto;border-radius:14px;border:1px solid var(--line);display:block;}
   .testpic p{margin:7px 0 0;font-size:12.5px;color:var(--soft);text-align:center;}
@@ -1807,39 +1815,96 @@ function injectTestPic(){
   document.querySelectorAll('#main .seg.main h3').forEach(function(x){ if(x.textContent.indexOf('④')>-1)target=x; });
   if(!target)return;
   const svg='<div class="testpic">'
-   +'<svg viewBox="0 0 300 170" role="img" aria-label="공원 그림: 나무, 강아지, 축구하는 아이, 책 읽는 아이">'
+   +'<svg viewBox="0 0 300 170" role="img" aria-label="공원 그림: 나무, 강아지, 축구하는 남자아이, 책 읽는 여자아이, 나비, 꽃">'
    +'<rect width="300" height="170" fill="#cfeaff"/>'
-   +'<circle cx="262" cy="30" r="18" fill="#ffd94d"/>'
-   +'<ellipse cx="70" cy="28" rx="26" ry="11" fill="#fff"/><ellipse cx="95" cy="34" rx="20" ry="9" fill="#fff"/>'
-   +'<rect y="110" width="300" height="60" fill="#8fd08a"/>'
-   +'<rect x="36" y="70" width="12" height="46" rx="4" fill="#8a5a36"/>'
-   +'<circle cx="42" cy="56" r="26" fill="#4faa5a"/><circle cx="24" cy="70" r="17" fill="#5cb868"/><circle cx="60" cy="70" r="17" fill="#5cb868"/>'
-   +'<ellipse cx="120" cy="136" rx="17" ry="11" fill="#b98a5a"/>'
-   +'<circle cx="103" cy="128" r="9" fill="#b98a5a"/><circle cx="99" cy="122" r="3.5" fill="#8a5a36"/>'
-   +'<circle cx="101" cy="128" r="1.6" fill="#333"/>'
-   +'<path d="M136 132 Q144 124 140 118" stroke="#b98a5a" stroke-width="4" fill="none" stroke-linecap="round"/>'
-   +'<rect x="110" y="144" width="4.5" height="9" fill="#8a5a36"/><rect x="126" y="144" width="4.5" height="9" fill="#8a5a36"/>'
-   +'<circle cx="200" cy="96" r="11" fill="#f8c94e"/>'
-   +'<rect x="192" y="107" width="16" height="22" rx="5" fill="#5aa9ff"/>'
-   +'<path d="M195 129 L189 150" stroke="#f8c94e" stroke-width="5" stroke-linecap="round"/>'
-   +'<path d="M205 129 L216 143" stroke="#f8c94e" stroke-width="5" stroke-linecap="round"/>'
-   +'<circle cx="228" cy="148" r="9" fill="#fff" stroke="#333" stroke-width="1.4"/>'
-   +'<path d="M224 144 L232 152 M232 144 L224 152" stroke="#333" stroke-width="1.1"/>'
-   +'<circle cx="270" cy="108" r="10" fill="#f8c94e"/>'
-   +'<path d="M270 118 L258 146 L282 146 Z" fill="#ff8fb8"/>'
-   +'<rect x="260" y="126" width="20" height="13" rx="2" fill="#fff" stroke="#c9a" stroke-width="1"/>'
-   +'<line x1="270" y1="126" x2="270" y2="139" stroke="#c9a" stroke-width="1"/>'
+   // 해 + 햇살
+   +'<circle cx="258" cy="30" r="14" fill="#ffd94d"/>'
+   +'<g stroke="#ffd94d" stroke-width="3" stroke-linecap="round">'
+   +'<line x1="258" y1="10" x2="258" y2="4"/><line x1="258" y1="50" x2="258" y2="56"/>'
+   +'<line x1="238" y1="30" x2="232" y2="30"/><line x1="278" y1="30" x2="284" y2="30"/>'
+   +'<line x1="272" y1="16" x2="276" y2="12"/><line x1="244" y1="16" x2="240" y2="12"/>'
+   +'<line x1="272" y1="44" x2="276" y2="48"/><line x1="244" y1="44" x2="240" y2="48"/></g>'
+   // 구름
+   +'<ellipse cx="72" cy="28" rx="24" ry="10" fill="#fff"/><ellipse cx="94" cy="33" rx="17" ry="8" fill="#fff"/>'
+   +'<ellipse cx="158" cy="20" rx="18" ry="8" fill="#fff"/><ellipse cx="174" cy="25" rx="13" ry="6" fill="#fff"/>'
+   // 잔디
+   +'<rect y="112" width="300" height="58" fill="#90cf8b"/>'
+   // 나무
+   +'<path d="M62 118 L65 76 L75 76 L78 118 Z" fill="#8a5a36"/>'
+   +'<circle cx="70" cy="56" r="25" fill="#4faa5a"/><circle cx="51" cy="70" r="16" fill="#5cb868"/><circle cx="89" cy="70" r="16" fill="#5cb868"/>'
+   // 꽃·나비 (이모지)
+   +'<text x="32" y="158" font-size="13" text-anchor="middle">🌷</text>'
+   +'<text x="160" y="164" font-size="12" text-anchor="middle">🌼</text>'
+   +'<text x="146" y="92" font-size="12" text-anchor="middle">🦋</text>'
+   // 강아지 (이모지 — 전신)
+   +'<text x="118" y="146" font-size="32" text-anchor="middle" dominant-baseline="central">🐕</text>'
+   // 남자아이: 이모지 얼굴 + 그린 몸 (공 차는 자세)
+   +'<text x="198" y="100" font-size="19" text-anchor="middle" dominant-baseline="central">👦</text>'
+   +'<rect x="190" y="109" width="16" height="19" rx="5" fill="#5aa9ff"/>'
+   +'<path d="M192 113 Q184 122 186 130" stroke="#f8c94e" stroke-width="4" fill="none" stroke-linecap="round"/>'
+   +'<path d="M204 113 Q214 118 218 111" stroke="#f8c94e" stroke-width="4" fill="none" stroke-linecap="round"/>'
+   +'<rect x="190.5" y="126" width="15" height="9" rx="3" fill="#3f6bc9"/>'
+   +'<path d="M195 134 L193 156" stroke="#f8c94e" stroke-width="4.5" fill="none" stroke-linecap="round"/>'
+   +'<path d="M203 133 Q212 141 219 147" stroke="#f8c94e" stroke-width="4.5" fill="none" stroke-linecap="round"/>'
+   +'<ellipse cx="192" cy="158" rx="5" ry="2.8" fill="#5b4636"/><ellipse cx="221" cy="149" rx="5" ry="2.8" fill="#5b4636"/>'
+   // 축구공 (이모지)
+   +'<text x="233" y="156" font-size="15" text-anchor="middle" dominant-baseline="central">⚽</text>'
+   // 여자아이: 이모지 얼굴 + 원피스, 책 읽기
+   +'<text x="266" y="101" font-size="19" text-anchor="middle" dominant-baseline="central">👧</text>'
+   +'<path d="M266 110 L252 148 L280 148 Z" fill="#ff8fb8"/>'
+   +'<path d="M258 118 Q262 126 266 129" stroke="#f8c94e" stroke-width="3.5" fill="none" stroke-linecap="round"/>'
+   +'<path d="M274 118 Q270 126 266 129" stroke="#f8c94e" stroke-width="3.5" fill="none" stroke-linecap="round"/>'
+   +'<path d="M260 148 L260 157" stroke="#f8c94e" stroke-width="3.5" stroke-linecap="round"/>'
+   +'<path d="M272 148 L272 157" stroke="#f8c94e" stroke-width="3.5" stroke-linecap="round"/>'
+   +'<ellipse cx="259" cy="159" rx="4" ry="2.4" fill="#5b4636"/><ellipse cx="273" cy="159" rx="4" ry="2.4" fill="#5b4636"/>'
+   +'<text x="266" y="134" font-size="14" text-anchor="middle" dominant-baseline="central">📖</text>'
    +'</svg>'
    +'<p>👆 진짜 시험처럼 연습! — "What can you see in the picture?"</p></div>';
   target.insertAdjacentHTML('afterend',svg);
 }
 
-/* --- render 확장: 홈=업적 섹션, 레벨테스트=그림 주입 --- */
+/* --- ✅ 연습 완료 체크: 진도 포인터 기준으로 월·주·일 탭에 표시 --- */
+function progIdxNow(){ const p=getProg(); return p.m*28+p.w*7+p.d; }
+function dayDone(m,w,d){ return m*28+w*7+d < progIdxNow(); }
+function weekDone(m,w){ return m*28+w*7+6 < progIdxNow(); }
+function weekDoneCount(m,w){ let c=0; for(let d=0;d<7;d++)if(dayDone(m,w,d))c++; return c; }
+function monthDone(m){ return (m+1)*28-1 < progIdxNow(); }
+function addBadge(el,cls,txt){ if(!el.querySelector('.tick'))el.insertAdjacentHTML('beforeend','<span class="tick '+cls+'">'+txt+'</span>'); }
+function markDone(){
+  // 월 칩: 완주 ✓ / 진행 중이면 N일
+  const chips=Array.prototype.filter.call(monthsEl.children,function(b){return b.textContent.indexOf('개월차')>-1;});
+  chips.forEach(function(b,m){
+    if(monthDone(m))addBadge(b,'','✓');
+    else{ let c=0; for(let w=0;w<4;w++)c+=weekDoneCount(m,w); if(c>0)addBadge(b,'part',c+'일'); }
+  });
+  if(cur.m<0)return;
+  const tabs=Array.prototype.filter.call(tabsEl.children,function(el){return el.classList&&el.classList.contains('tab');});
+  const wks=tabs.filter(function(t){return t.classList.contains('wk');});
+  const dds=tabs.filter(function(t){return !t.classList.contains('wk');});
+  wks.forEach(function(b,w){
+    if(weekDone(cur.m,w))addBadge(b,'','✓');
+    else{ const c=weekDoneCount(cur.m,w); if(c>0)addBadge(b,'part',c+'/7'); }
+  });
+  const p=getProg();
+  dds.forEach(function(b,d){
+    if(dayDone(cur.m,cur.w,d))addBadge(b,'','✓');
+    else if(p.m===cur.m&&p.w===cur.w&&p.d===d)addBadge(b,'now','▶');
+  });
+  // 페이지 안 제목에도 완료 표시
+  const dt=document.querySelector('#main .daytitle');
+  if(dt&&!dt.querySelector('.done-chip')){
+    if(dayDone(cur.m,cur.w,cur.d))dt.insertAdjacentHTML('beforeend','<span class="done-chip">✅ 연습 완료</span>');
+    else if(p.m===cur.m&&p.w===cur.w&&p.d===cur.d)dt.insertAdjacentHTML('beforeend','<span class="done-chip todo">📌 오늘 할 차례</span>');
+  }
+}
+
+/* --- render 확장: 홈=업적 섹션, 레벨테스트=그림 주입, 전체=완료 체크 --- */
 const _renderFinal=render;
 render=function(){
   _renderFinal();
   if(cur.m===-3)injectAchs();
   if(cur.m===-2)injectTestPic();
+  markDone();
 };
 render();
 /* 이미 조건을 채운 업적이 있으면 즉시 반영 (예: 기존 사용자) */

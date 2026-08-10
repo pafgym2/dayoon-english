@@ -1070,12 +1070,12 @@ render();
   .coinchip{background:#fff6da;color:#8a6d2f;font-weight:800;border-radius:999px;
     padding:4px 12px;font-size:14px;font-variant-numeric:tabular-nums;}
   .shop-slot{font-size:12.5px;font-weight:800;color:var(--soft);margin:12px 0 6px;}
-  .shop-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;}
-  .item{border:1px solid var(--line);background:#faf6fa;border-radius:12px;padding:8px 2px 7px;
-    display:flex;flex-direction:column;align-items:center;gap:1px;cursor:pointer;}
-  .item .ie{font-size:24px;line-height:1.2;}
-  .item .in{font-size:11px;font-weight:700;color:var(--ink);}
-  .item .ip{font-size:10.5px;font-weight:800;color:#8a6d2f;}
+  .shop-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+  .item{border:1px solid var(--line);background:#faf6fa;border-radius:14px;padding:11px 3px 9px;
+    display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;}
+  .item .ie{font-size:36px;line-height:1.15;filter:drop-shadow(0 2px 2px rgba(0,0,0,.1));}
+  .item .in{font-size:12px;font-weight:700;color:var(--ink);}
+  .item .ip{font-size:11.5px;font-weight:800;color:#8a6d2f;}
   .item.own .ip{color:var(--blue);}
   .item.eq{border-color:var(--pink);background:#fff0f7;}
   .item.eq .ip{color:var(--pink-d);}
@@ -1089,10 +1089,10 @@ render();
   .fig{position:relative;width:96px;height:132px;display:inline-block;flex:0 0 auto;}
   .fig .bod{position:absolute;left:0;top:42px;width:96px;height:92px;}
   .f-head{position:absolute;top:14px;left:50%;transform:translateX(-50%);font-size:42px;line-height:1;z-index:2;filter:drop-shadow(0 2px 2px rgba(0,0,0,.12));}
-  .f-hat{position:absolute;top:-4px;left:50%;transform:translateX(-50%);font-size:25px;line-height:1;z-index:3;}
-  .f-face{position:absolute;top:30px;left:50%;transform:translateX(-50%);font-size:17px;line-height:1;z-index:3;}
-  .f-neck{position:absolute;top:56px;left:50%;transform:translateX(-50%);font-size:15px;line-height:1;z-index:3;}
-  .f-hand{position:absolute;top:26px;left:66px;font-size:25px;line-height:1;z-index:3;filter:drop-shadow(0 2px 2px rgba(0,0,0,.15));}
+  .f-hat{position:absolute;top:-10px;left:50%;transform:translateX(-50%);font-size:30px;line-height:1;z-index:3;filter:drop-shadow(0 1px 2px rgba(0,0,0,.15));}
+  .f-face{position:absolute;top:27px;left:50%;transform:translateX(-50%);font-size:22px;line-height:1;z-index:3;}
+  .f-neck{position:absolute;top:53px;left:50%;transform:translateX(-50%);font-size:20px;line-height:1;z-index:3;}
+  .f-hand{position:absolute;top:18px;left:62px;font-size:34px;line-height:1;z-index:3;filter:drop-shadow(0 2px 2px rgba(0,0,0,.15));}
   .fig.full{height:120px;}
   .fig.full .f-head{font-size:60px;top:16px;}
   .fig.full .f-hat{top:-4px;}
@@ -1100,12 +1100,15 @@ render();
   .fig.full .f-neck{top:72px;}
   .fig.full .f-hand{top:56px;left:68px;}
   .mini .fig{position:absolute;top:3px;left:50%;transform:translateX(-50%) scale(.36);transform-origin:top center;}
-  .ava-stage-wrap{display:flex;gap:12px;margin:12px 0 4px;}
-  .ava-stage{position:relative;flex:0 0 auto;width:150px;height:150px;border-radius:20px;overflow:hidden;
-    box-shadow:inset 0 0 0 1px rgba(0,0,0,.06);display:flex;align-items:center;justify-content:center;}
-  .st-pet{position:absolute;font-size:36px;line-height:1;bottom:7%;right:6%;filter:drop-shadow(0 2px 3px rgba(0,0,0,.2));z-index:4;}
-  .ava-stage .fig{transform:translateX(-10px);}
-  .stage-side{flex:1;display:flex;flex-direction:column;gap:7px;justify-content:center;min-width:0;}
+  .ava-stage-wrap{display:flex;flex-direction:column;gap:10px;margin:12px 0 4px;}
+  .ava-stage{position:relative;width:100%;height:235px;border-radius:20px;overflow:hidden;
+    box-shadow:inset 0 0 0 1px rgba(0,0,0,.06);display:flex;align-items:flex-end;justify-content:center;}
+  .st-pet{position:absolute;font-size:58px;line-height:1;bottom:12px;right:7%;filter:drop-shadow(0 3px 4px rgba(0,0,0,.22));z-index:4;}
+  .ava-stage .fig{transform:scale(1.55);transform-origin:bottom center;margin:0 60px 10px 0;}
+  .stage-side{display:flex;flex-direction:row;gap:7px;min-width:0;}
+  .stage-side .coll{flex:1;}
+  .stage-side .gacha{flex:1.5;}
+  .stage-side .undress{flex:.8;}
   .coll{background:#fff7fb;border-radius:12px;padding:8px 6px;text-align:center;font-size:11px;color:var(--soft);line-height:1.3;}
   .coll b{display:block;font-size:19px;color:var(--pink-d);font-variant-numeric:tabular-nums;margin-top:2px;}
   .gacha{border:none;border-radius:12px;padding:9px 6px;font-weight:800;font-size:14px;cursor:pointer;
@@ -1622,7 +1625,7 @@ render();
   @keyframes gshake{0%,100%{transform:rotate(-8deg)}50%{transform:rotate(8deg) scale(1.06)}}
   @keyframes gpop{0%{transform:scale(.2);opacity:0}70%{transform:scale(1.25)}100%{transform:scale(1);opacity:1}}
   .glabel{font-size:15px;font-weight:800;color:var(--soft);margin-top:12px;}
-  .gitem{font-size:76px;line-height:1.15;display:inline-block;filter:drop-shadow(0 4px 6px rgba(0,0,0,.2));}
+  .gitem{font-size:92px;line-height:1.15;display:inline-block;filter:drop-shadow(0 4px 6px rgba(0,0,0,.2));}
   .gname{font-size:19px;font-weight:800;margin-top:6px;}
   .grare{display:inline-block;font-size:12px;font-weight:800;border-radius:999px;padding:3px 12px;margin-top:5px;}
   .gr-c{background:#efe9f1;color:#8d8496;} .gr-r{background:#e3f0ff;color:#2b6fd1;}
@@ -1977,6 +1980,30 @@ function toggleStamp(key){
   }
   render(); checkAch();
 }
+
+/* --- 🛍️ 구매 축하 연출: 사는 순간 아이템이 크게 짜잔! --- */
+tapItem=function(id){
+  const a=getAva(), it=itemById(id); if(!it)return;
+  if(a.owned.indexOf(id)>-1){
+    if(it.slot==='pet'){ a.eq.pet=id; showToast(it.e+' '+it.n+' 착용!'); }
+    else if(it.slot==='person'){ a.eq.person=id; showToast(it.e+' '+it.n+'(으)로 변신!'); }
+    else if(a.eq[it.slot]===id){ a.eq[it.slot]=(it.slot==='bg'?'bg_none':null); showToast(it.n+' 벗었어요'); }
+    else { a.eq[it.slot]=id; showToast(it.e+' '+it.n+' 착용!'); }
+    saveAva(a); render(); checkAch(); return;
+  }
+  const c=getCoins();
+  if(c<it.p){ showToast('코인이 부족해요! 도장 '+Math.ceil((it.p-c)/10)+'개 더 모으면 살 수 있어요 💪'); return; }
+  setCoins(c-it.p); a.owned.push(id); a.eq[it.slot]=id; saveAva(a);
+  sfx('coin');
+  const ov=document.getElementById('gachaov'); ov.style.display='flex';
+  document.getElementById('gbody').innerHTML=
+    '<div class="gitem">'+it.e+'</div>'
+    +'<div class="gname">'+it.n+' 획득!</div>'
+    +'<div class="grare gr-'+it.r+'">'+RLBL[it.r]+' 등급</div>'
+    +'<div class="glabel">−'+it.p+' 🪙 · 바로 착용했어요!</div>'
+    +'<button type="button" class="gclose" onclick="closeGacha()">멋지다! ✨</button>';
+  render(); checkAch();
+};
 
 /* --- render 확장: 홈=업적 섹션, 레벨테스트=그림 주입, 스크립트=완료 버튼, 전체=완료 체크 --- */
 const _renderFinal=render;

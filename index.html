@@ -894,7 +894,7 @@ function shopHTML(){
   const total=ITEMS.length, own=ITEMS.filter(function(i){return a.owned.indexOf(i.id)>-1;}).length;
   let h='<div class="shop"><div class="shop-head"><h3>🎨 꾸미기 상점</h3><span class="coinchip">🪙 '+c+'</span></div>';
   h+='<div class="ava-stage-wrap">'+avatarStageHTML()
-    +'<div class="stage-side"><div class="coll">📖 모은 아이템<b>'+own+' / '+total+'</b></div>'
+    +'<div class="stage-side"><button type="button" class="coll" onclick="openColl()">📖 모은 아이템<b>'+own+' / '+total+'</b><small>누르면 전체 보기</small></button>'
     +'<button type="button" class="gacha" onclick="gacha()">🎁 랜덤 뽑기<small>🪙'+GACHA+' · 안 가진 것만!</small></button>'
     +'<button type="button" class="undress" onclick="resetOutfit()">🧺 다 벗기</button></div></div>';
   h+='<div class="shopcats">'+cats.map(function(ct){
@@ -1327,7 +1327,7 @@ function injectShadowBtn(){
 }
 
 /* --- 📤 백업 / 📥 복원 (부모용) --- */
-const BK_KEYS=['dayoon_stamps','dayoon_coins','dayoon_prog','dayoon_avatar','dayoon_bonuspaid','dayoon_pos_v3','dayoon_fs','dayoon_quizq','dayoon_gift1','dayoon_ach','dayoon_stats','dayoon_mute','dayoon_wrongw','dayoon_done'];
+const BK_KEYS=['dayoon_stamps','dayoon_coins','dayoon_prog','dayoon_avatar','dayoon_bonuspaid','dayoon_pos_v3','dayoon_fs','dayoon_quizq','dayoon_quizq2','dayoon_gift1','dayoon_ach','dayoon_stats','dayoon_mute','dayoon_wrongw','dayoon_done'];
 function exportData(){
   const o={};
   BK_KEYS.forEach(function(k){try{const v=localStorage.getItem(k); if(v!==null)o[k]=v;}catch(e){}});
@@ -1356,7 +1356,7 @@ render=function(){ _renderPrev(); injectShadowBtn(); };
 document.body.insertAdjacentHTML('beforeend',
   '<div id="quizov" onclick="if(event.target===this)closeQuiz()"><div class="card">'
   +'<div class="rtitle">🎯 단어 퀴즈</div>'
-  +'<div class="rsub">지금까지 배운 새 단어에서 5문제! 정답 +2🪙 · 다 맞으면 +10 보너스 · 하루 3판까지</div>'
+  +'<div class="rsub">지금까지 배운 새 단어로 5문제! 만점 보너스 있음 · 모드별 하루 3판까지 코인</div>'
   +'<div id="quizbody"></div></div></div>'
   +'<div id="shadov" onclick="if(event.target===this)closeShadow()"><div class="card">'
   +'<div class="rtitle">🗣️ 따라 말하기</div><div class="rsub" id="sh-num"></div>'
@@ -1646,6 +1646,55 @@ render();
   .daycheck small{display:block;font-size:12px;font-weight:600;opacity:.92;margin-top:3px;}
   .daycheck.on{background:#f0fbf5;color:#1f8a5b;box-shadow:inset 0 0 0 2px #34c77b;}
   .daycheck:active{transform:translateY(1px);}
+  /* ===== 🔤 스펠링 퀴즈 ===== */
+  .qz-mode{padding:14px 8px;font-size:16px;line-height:1.3;}
+  .qz-mode small{display:block;font-weight:600;font-size:11px;color:var(--soft);margin-top:3px;}
+  .sp-slots{display:flex;gap:4px;justify-content:center;flex-wrap:wrap;margin:12px 0 10px;}
+  .sp-slot{width:30px;height:38px;border-bottom:3px solid #d9cfe0;border-radius:6px 6px 0 0;background:#faf6fa;
+    font-size:21px;font-weight:800;display:flex;align-items:center;justify-content:center;color:var(--ink);}
+  .sp-slot.fill{background:#fff0f7;border-bottom-color:var(--pink);}
+  .sp-slots.ok .sp-slot{background:#e2f8ec;border-bottom-color:#34c77b;color:#1f8a5b;}
+  .sp-slots.no .sp-slot{background:#ffe9ec;border-bottom-color:#e8607a;color:#c9405c;}
+  .sp-correct{font-size:14px;color:#c9405c;font-weight:700;margin:0 0 8px;}
+  .sp-correct b{letter-spacing:1.5px;font-size:16px;}
+  .sp-tiles{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin:6px 0 10px;}
+  .sp-tile{width:38px;height:44px;border:1px solid var(--line);border-radius:10px;background:#fff;font-size:20px;
+    font-weight:800;cursor:pointer;color:var(--ink);box-shadow:0 2px 4px rgba(0,0,0,.08);padding:0;}
+  .sp-tile:disabled{opacity:.22;box-shadow:none;}
+  .sp-ctl{display:flex;justify-content:center;}
+  .sp-ctl .qz-c{min-width:110px;}
+  /* ===== 📖 내 아이템 도감 ===== */
+  .coll{cursor:pointer;border:1px solid var(--line);}
+  .coll small{display:block;font-size:9.5px;color:var(--pink-d);font-weight:700;margin-top:1px;}
+  #collov{position:fixed;inset:0;background:rgba(51,48,58,.55);z-index:56;display:none;align-items:center;justify-content:center;padding:16px;}
+  #collov .card{background:#fff;border-radius:22px;padding:20px 14px 14px;max-width:380px;width:100%;
+    max-height:82vh;overflow-y:auto;text-align:center;box-shadow:0 12px 34px rgba(0,0,0,.3);}
+  #collov .rtitle{font-size:16px;font-weight:800;color:var(--pink-d);}
+  #collov .rsub{font-size:12px;color:var(--soft);margin-top:2px;}
+  .coll-cat{display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:800;
+    color:var(--ink);margin:13px 2px 6px;}
+  .coll-cat span{color:var(--pink-d);font-variant-numeric:tabular-nums;font-size:12px;}
+  .coll-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;}
+  .citem{position:relative;border:1px solid var(--line);background:#faf6fa;border-radius:12px;padding:8px 2px 6px;
+    display:flex;flex-direction:column;align-items:center;gap:1px;cursor:pointer;}
+  .citem .ce{font-size:26px;line-height:1.2;}
+  .citem .cn{font-size:10px;font-weight:700;color:var(--ink);}
+  .citem.eq{border-color:var(--pink);background:#fff0f7;}
+  .ceq{position:absolute;top:-6px;right:-3px;background:var(--pink-d);color:#fff;font-size:8px;font-weight:800;
+    padding:1.5px 5px;border-radius:7px;box-shadow:0 1px 3px rgba(0,0,0,.2);}
+  .citem.lock{opacity:.35;cursor:default;}
+  #collov .gclose{margin-top:14px;}
+  /* ===== 🏅 업적 2.0 ===== */
+  .ach{opacity:.85;}
+  .ach.on{opacity:1;}
+  .ach.on.r2-c{border-color:#cfc7d4;background:#faf7fb;}
+  .ach.on.r2-r{border-color:#9cc9ff;background:#f3f8ff;}
+  .ach.on.r2-e{border-color:#c9b6ff;background:#f7f3ff;}
+  .ach.on.r2-l{border-color:#ffcf6a;background:linear-gradient(135deg,#fff8e6,#fff0f7);}
+  .ach-bar{width:100%;height:6px;background:#efe7ee;border-radius:99px;overflow:hidden;margin-top:4px;}
+  .ach-bar div{height:100%;background:linear-gradient(90deg,var(--pink),var(--pink-d));border-radius:99px;}
+  .ach-more{display:block;width:100%;border:1px solid var(--line);background:#fff;border-radius:12px;
+    padding:9px;margin-top:10px;font-size:13px;font-weight:800;color:var(--pink-d);cursor:pointer;}
   .testpic{margin:4px 0 10px;}
   .testpic svg{width:100%;height:auto;border-radius:14px;border:1px solid var(--line);display:block;}
   .testpic p{margin:7px 0 0;font-size:12.5px;color:var(--soft);text-align:center;}
@@ -1979,6 +2028,239 @@ function toggleStamp(key){
     if(isToday){ setDayDone(progIdxNow(),true,true); advanceToNextUndone(); }
   }
   render(); checkAch();
+}
+
+/* --- 🎯 퀴즈 모드 선택 (퀴즈1 뜻 맞히기 · 퀴즈2 스펠링 쓰기) --- */
+function qrnd(){ return Math.random()-0.5; }
+function openQuiz(){
+  document.getElementById('quizov').style.display='flex';
+  document.getElementById('quizbody').innerHTML=
+    '<div class="qz-label" style="margin-top:12px">어떤 퀴즈로 놀까?</div>'
+    +'<div class="qz-choices" style="margin-top:10px">'
+    +'<button type="button" class="qz-c qz-mode" onclick="startQuiz1()">🎯 퀴즈 1<small>뜻 맞히기 · 정답 +2🪙</small></button>'
+    +'<button type="button" class="qz-c qz-mode" onclick="startQuiz2()">🔤 퀴즈 2<small>스펠링 쓰기 · 정답 +3🪙</small></button></div>';
+}
+function startQuiz1(){
+  const pool=quizWordPool();
+  if(pool.length<4){showToast('퀴즈 낼 단어가 아직 부족해요! 조금 더 배우고 와요 🌱'); return;}
+  const wl=wrongList();
+  const wrongPool=pool.filter(function(w){return wl.indexOf(w.en)>-1;}).sort(qrnd).slice(0,2);
+  const restPool=pool.filter(function(w){return wrongPool.indexOf(w)<0;}).sort(qrnd);
+  const picked=wrongPool.concat(restPool).slice(0,Math.min(5,pool.length)).sort(qrnd);
+  const qs=picked.map(function(w){
+    const wrong=pool.filter(function(x){return x.en!==w.en;}).sort(qrnd).slice(0,3);
+    return {w:w, mode:Math.random()<0.5?'en2ko':'ko2en',
+            choices:wrong.concat([w]).sort(qrnd)};
+  });
+  quiz={qs:qs,i:0,score:0,rewarded:quizRewardLeft()>0,locked:false};
+  if(quiz.rewarded)quizUseReward();
+  document.getElementById('quizov').style.display='flex';
+  quizShow();
+}
+function quizEnd(){
+  let coins=0;
+  if(quiz.rewarded){
+    coins=quiz.score*2+(quiz.score===quiz.qs.length?10:0);
+    if(coins)setCoins(getCoins()+coins);
+  }
+  if(quiz.score===quiz.qs.length){ const s=getStats(); s.qp++; saveStats(s); }
+  document.getElementById('quizbody').innerHTML=
+    '<div class="qz-word" style="margin-top:10px">'+(quiz.score===quiz.qs.length?'💯 완벽해요!':'🎉 잘했어요!')+'</div>'
+    +'<div class="qz-label">'+quiz.score+' / '+quiz.qs.length+' 정답'+(coins?' · +'+coins+' 🪙':'')
+    +(wrongList().length?'<br>틀린 단어 '+wrongList().length+'개는 다음 퀴즈에 다시 나와요 💪':'')+'</div>'
+    +'<div class="qz-choices" style="margin-top:12px"><button type="button" class="qz-c" onclick="startQuiz1()">한 번 더!</button>'
+    +'<button type="button" class="qz-c" onclick="openQuiz()">퀴즈 고르기</button></div>'
+    +'<div class="qz-choices" style="margin-top:8px"><button type="button" class="qz-c" onclick="closeQuiz()">닫기</button></div>';
+  if(coins)showToast('퀴즈 보상 +'+coins+' 🪙');
+  checkAch();
+}
+
+/* --- 🔤 퀴즈 2: 스펠링 조립 (글자 타일 눌러 단어 완성) --- */
+let sp={qs:[],i:0,score:0,rewarded:false,ans:[],tiles:[],hist:[],locked:false};
+function spellPool(){ return quizWordPool().filter(function(w){return /^[a-zA-Z]{3,10}$/.test(w.en);}); }
+function quiz2TodayKey(){ const t=new Date(); return t.getFullYear()+'-'+(t.getMonth()+1)+'-'+t.getDate(); }
+function quiz2RewardLeft(){ const q=lsGet('dayoon_quizq2',{d:'',n:0}); return q.d===quiz2TodayKey()?Math.max(0,3-q.n):3; }
+function quiz2UseReward(){ const q=lsGet('dayoon_quizq2',{d:'',n:0}); if(q.d!==quiz2TodayKey()){q.d=quiz2TodayKey();q.n=0;} q.n++; lsSet('dayoon_quizq2',q); }
+function startQuiz2(){
+  const pool=spellPool();
+  if(pool.length<3){showToast('스펠링 퀴즈 낼 단어가 아직 부족해요 🌱'); return;}
+  const wl=wrongList();
+  const wrongPool=pool.filter(function(w){return wl.indexOf(w.en)>-1;}).sort(qrnd).slice(0,2);
+  const rest=pool.filter(function(w){return wrongPool.indexOf(w)<0;}).sort(qrnd);
+  sp={qs:wrongPool.concat(rest).slice(0,Math.min(5,pool.length)).sort(qrnd), i:0, score:0,
+      rewarded:quiz2RewardLeft()>0, ans:[], tiles:[], hist:[], locked:false};
+  if(sp.rewarded)quiz2UseReward();
+  document.getElementById('quizov').style.display='flex';
+  spShow();
+}
+function spShow(){
+  const q=sp.qs[sp.i];
+  sp.ans=[]; sp.hist=[]; sp.locked=false;
+  sp.tiles=q.en.toLowerCase().split('').sort(qrnd);
+  document.getElementById('quizbody').innerHTML=
+    '<div class="qz-num">'+(sp.i+1)+' / '+sp.qs.length+(sp.rewarded?'':' · 연습 모드 (오늘 코인 획득 끝!)')+'</div>'
+    +'<div class="qz-label">이 뜻의 영어 단어를 글자로 만들어봐!</div>'
+    +'<div class="qz-word">'+q.ko+' <button class="spk" type="button" onclick="speak(sp.qs[sp.i].en)">🔊</button></div>'
+    +'<div class="sp-slots" id="spslots"></div>'
+    +'<div class="sp-tiles" id="sptiles"></div>'
+    +'<div class="sp-ctl"><button type="button" class="qz-c" onclick="spBack()">⌫ 지우기</button></div>';
+  spRender();
+  speak(q.en);
+}
+function spRender(){
+  const q=sp.qs[sp.i], n=q.en.length;
+  let s='';
+  for(let i=0;i<n;i++)s+='<span class="sp-slot'+(sp.ans[i]?' fill':'')+'">'+(sp.ans[i]||'')+'</span>';
+  document.getElementById('spslots').innerHTML=s;
+  document.getElementById('sptiles').innerHTML=sp.tiles.map(function(t,i){
+    return '<button type="button" class="sp-tile"'+(t===null?' disabled':'')+' onclick="spPick('+i+')">'+(t===null?'&nbsp;':t)+'</button>';
+  }).join('');
+}
+function spPick(i){
+  if(sp.locked||sp.tiles[i]===null)return;
+  sp.ans.push(sp.tiles[i]); sp.hist.push(i); sp.tiles[i]=null;
+  spRender();
+  if(sp.ans.length===sp.qs[sp.i].en.length)spCheck();
+}
+function spBack(){
+  if(sp.locked||!sp.ans.length)return;
+  const i=sp.hist.pop(); sp.tiles[i]=sp.ans.pop();
+  spRender();
+}
+function spCheck(){
+  sp.locked=true;
+  const q=sp.qs[sp.i], ok=sp.ans.join('')===q.en.toLowerCase();
+  const slots=document.getElementById('spslots');
+  slots.classList.add(ok?'ok':'no');
+  if(ok){ sp.score++; sfx('good'); clearWrong(q.en); }
+  else {
+    sfx('bad'); pushWrong(q.en);
+    slots.insertAdjacentHTML('afterend','<div class="sp-correct">정답: <b>'+q.en+'</b> — 눈으로 한 번 따라 읽어봐!</div>');
+    speak(q.en,0.7);
+  }
+  setTimeout(function(){
+    sp.i++;
+    if(sp.i<sp.qs.length)spShow(); else spEnd();
+  }, ok?800:2200);
+}
+function spEnd(){
+  let coins=0;
+  if(sp.rewarded){ coins=sp.score*3+(sp.score===sp.qs.length?10:0); if(coins)setCoins(getCoins()+coins); }
+  if(sp.score===sp.qs.length){ const s=getStats(); s.qp++; s.sp=(s.sp||0)+1; saveStats(s); }
+  document.getElementById('quizbody').innerHTML=
+    '<div class="qz-word" style="margin-top:10px">'+(sp.score===sp.qs.length?'💯 스펠링 마스터!':'🎉 잘했어요!')+'</div>'
+    +'<div class="qz-label">'+sp.score+' / '+sp.qs.length+' 정답'+(coins?' · +'+coins+' 🪙':'')
+    +(wrongList().length?'<br>틀린 단어는 다음 퀴즈에 또 나와요 💪':'')+'</div>'
+    +'<div class="qz-choices" style="margin-top:12px"><button type="button" class="qz-c" onclick="startQuiz2()">한 번 더!</button>'
+    +'<button type="button" class="qz-c" onclick="openQuiz()">퀴즈 고르기</button></div>'
+    +'<div class="qz-choices" style="margin-top:8px"><button type="button" class="qz-c" onclick="closeQuiz()">닫기</button></div>';
+  if(coins)showToast('스펠링 퀴즈 +'+coins+' 🪙');
+  checkAch();
+}
+
+/* --- 📖 내 아이템 도감: 산 것 한눈에 보기 (누르면 착용) --- */
+function openColl(){
+  const a=getAva();
+  const cats=[['person','🧒 사람'],['pet','🐾 동물 친구'],['hat','🎩 머리'],['face','🕶️ 얼굴'],['neck','🎀 목'],['hand','🎈 손'],['bg','🖼️ 배경']];
+  const own=ITEMS.filter(function(i){return a.owned.indexOf(i.id)>-1;}).length;
+  let h='<div class="rtitle">📖 다윤이의 아이템</div>'
+    +'<div class="rsub">모은 아이템 '+own+' / '+ITEMS.length+' · 누르면 바로 착용!</div>';
+  cats.forEach(function(ct){
+    const items=ITEMS.filter(function(i){return i.slot===ct[0];});
+    const ownedN=items.filter(function(i){return a.owned.indexOf(i.id)>-1;}).length;
+    h+='<div class="coll-cat">'+ct[1]+' <span>'+ownedN+' / '+items.length+'</span></div><div class="coll-grid">';
+    items.forEach(function(it){
+      const owned=a.owned.indexOf(it.id)>-1, eq=a.eq[it.slot]===it.id;
+      if(owned)h+='<button type="button" class="citem'+(eq?' eq':'')+'" onclick="collWear(\''+it.id+'\')">'
+        +(eq?'<span class="ceq">착용중</span>':'')+'<span class="ce">'+it.e+'</span><span class="cn">'+it.n+'</span></button>';
+      else h+='<div class="citem lock"><span class="ce">🔒</span><span class="cn">'+it.n+'</span></div>';
+    });
+    h+='</div>';
+  });
+  h+='<button type="button" class="gclose" onclick="closeColl()">닫기</button>';
+  document.getElementById('collbody').innerHTML=h;
+  document.getElementById('collov').style.display='flex';
+}
+function collWear(id){ tapItem(id); openColl(); }
+function closeColl(){ document.getElementById('collov').style.display='none'; }
+document.body.insertAdjacentHTML('beforeend',
+  '<div id="collov" onclick="if(event.target===this)closeColl()"><div class="card" id="collbody"></div></div>');
+
+/* --- 🏅 업적 2.0: 24종 + 진행 게이지 + 달성 축하 연출 --- */
+const ACH2=[
+  {id:'a_stamp1',  e:'🎯',n:'첫 도장',      d:'도장 1개 찍기',        c:20,  r:'c', p:function(){return [stampSet().size,1];}},
+  {id:'a_streak3', e:'✨',n:'사흘 불꽃',    d:'3일 연속 연습',        c:30,  r:'c', p:function(){return [currentStreak(),3];}},
+  {id:'a_streak7', e:'🔥',n:'일주일 불꽃',  d:'7일 연속 연습',        c:50,  r:'r', p:function(){return [currentStreak(),7];}},
+  {id:'a_streak14',e:'💪',n:'2주 불꽃',     d:'14일 연속 연습',       c:100, r:'r', p:function(){return [currentStreak(),14];}},
+  {id:'a_streak30',e:'🌟',n:'한 달 불꽃',   d:'30일 연속 연습',       c:300, r:'e', p:function(){return [currentStreak(),30];}},
+  {id:'a_stamp28', e:'🏆',n:'꾸준왕',       d:'도장 28개 모으기',     c:100, r:'r', p:function(){return [stampSet().size,28];}},
+  {id:'a_stamp100',e:'💯',n:'백 개의 도장', d:'도장 100개 모으기',    c:300, r:'e', p:function(){return [stampSet().size,100];}},
+  {id:'a_stamp200',e:'👑',n:'도장 부자',    d:'도장 200개 모으기',    c:500, r:'l', p:function(){return [stampSet().size,200];}},
+  {id:'a_quiz1',   e:'🧠',n:'퀴즈 천재',    d:'퀴즈 첫 만점',         c:30,  r:'c', p:function(){return [getStats().qp,1];}},
+  {id:'a_quiz10',  e:'🎓',n:'단어 박사',    d:'퀴즈 만점 10번',       c:150, r:'r', p:function(){return [getStats().qp,10];}},
+  {id:'a_quiz30',  e:'🤖',n:'만점 기계',    d:'퀴즈 만점 30번',       c:400, r:'e', p:function(){return [getStats().qp,30];}},
+  {id:'a_spell1',  e:'🔤',n:'스펠링 도전',  d:'스펠링 퀴즈 첫 만점',  c:50,  r:'r', p:function(){return [getStats().sp||0,1];}},
+  {id:'a_spell10', e:'✍️',n:'스펠링 마스터',d:'스펠링 만점 10번',     c:200, r:'e', p:function(){return [getStats().sp||0,10];}},
+  {id:'a_gacha1',  e:'🎁',n:'첫 뽑기',      d:'랜덤 뽑기 1번',        c:20,  r:'c', p:function(){return [getStats().ga,1];}},
+  {id:'a_gacha10', e:'🎰',n:'뽑기 매니아',  d:'랜덤 뽑기 10번',       c:150, r:'r', p:function(){return [getStats().ga,10];}},
+  {id:'a_col10',   e:'🧸',n:'수집가',       d:'아이템 10개 모으기',   c:50,  r:'c', p:function(){return [getAva().owned.length,10];}},
+  {id:'a_col30',   e:'💎',n:'대수집가',     d:'아이템 30개 모으기',   c:200, r:'r', p:function(){return [getAva().owned.length,30];}},
+  {id:'a_col63',   e:'🏰',n:'전부 다 모았다',d:'아이템 63개 전부!',   c:1000,r:'l', p:function(){return [getAva().owned.length,ITEMS.length];}},
+  {id:'a_legend',  e:'🦄',n:'전설의 주인',  d:'전설 등급 아이템 갖기',c:150, r:'e', p:function(){const a=getAva();return [ITEMS.filter(function(i){return i.r==='l'&&a.owned.indexOf(i.id)>-1;}).length>0?1:0,1];}},
+  {id:'a_m1',      e:'🚀',n:'1개월차 완주', d:'1개월차 28일 모두 완료',c:100, r:'r', p:function(){const s=doneSet();let c=0;for(let i=0;i<28;i++)if(s.has(i))c++;return [c,28];}},
+  {id:'a_q1',      e:'🌱',n:'1분기 돌파',   d:'1~3개월차 84일 완료',  c:300, r:'e', p:function(){const s=doneSet();let c=0;for(let i=0;i<84;i++)if(s.has(i))c++;return [c,84];}},
+  {id:'a_half',    e:'⛳',n:'반환점',       d:'336일 중 168일 완료',  c:300, r:'e', p:function(){return [doneSet().size,168];}},
+  {id:'a_full',    e:'🎆',n:'1년 완주!!',   d:'336일 전부 완료',      c:2000,r:'l', p:function(){return [doneSet().size,336];}},
+  {id:'a_rich',    e:'🪙',n:'코인 부자',    d:'코인 500개 모으기',    c:50,  r:'r', p:function(){return [getCoins(),500];}}
+];
+let achExpand=false;
+function toggleAchExpand(){ achExpand=!achExpand; render(); }
+function achReveal(gained,coins){
+  const ov=document.getElementById('gachaov'); ov.style.display='flex';
+  document.getElementById('gbody').innerHTML=
+    '<div class="gitem" style="font-size:60px">'+gained.slice(0,3).map(function(a){return a.e;}).join(' ')+'</div>'
+    +'<div class="gname">🏅 업적 달성!</div>'
+    +gained.slice(0,3).map(function(a){return '<div class="glabel" style="margin-top:5px"><b>'+a.n+'</b> · '+a.d+'</div>';}).join('')
+    +(gained.length>3?'<div class="glabel">…그리고 '+(gained.length-3)+'개 더!</div>':'')
+    +'<div class="grare gr-l" style="margin-top:10px">보상 +'+coins+' 🪙</div>'
+    +'<button type="button" class="gclose" onclick="closeGacha()">최고야! ✨</button>';
+}
+function checkAch(){
+  const got=getAchs(); let gained=[], coins=0;
+  ACH2.forEach(function(a){
+    if(got.indexOf(a.id)<0){ try{ const pr=a.p(); if(pr[0]>=pr[1]){ got.push(a.id); gained.push(a); coins+=a.c; } }catch(e){} }
+  });
+  if(gained.length){
+    lsSet('dayoon_ach',got); setCoins(getCoins()+coins); sfx('gacha');
+    achReveal(gained,coins);
+    render();
+  }
+}
+function injectAchs(){
+  if(document.querySelector('#main .achs'))return;
+  const got=getAchs(), muted=lsGet('dayoon_mute',0);
+  const list=ACH2.map(function(a){
+    const on=got.indexOf(a.id)>-1; let pr=[0,1];
+    try{pr=a.p();}catch(e){}
+    const cur=Math.min(pr[0],pr[1]);
+    return {a:a,on:on,cur:cur,max:pr[1],pct:on?100:Math.min(99,Math.round(cur/pr[1]*100))};
+  }).sort(function(x,y){ return (y.on?1:0)-(x.on?1:0) || y.pct-x.pct; });
+  const shown=achExpand?list:list.slice(0,9);
+  let h='<div class="achs"><div class="ach-head"><h3>🏅 업적 <span>'+got.length+' / '+ACH2.length+'</span></h3>'
+    +'<button type="button" class="mutebtn" onclick="toggleMute()" aria-label="효과음 켜기/끄기">'+(muted?'🔇':'🔊')+'</button></div><div class="ach-grid">';
+  shown.forEach(function(x){
+    const a=x.a;
+    h+='<div class="ach r2-'+a.r+(x.on?' on':'')+'">'
+      +'<span class="ae">'+(x.on?a.e:'🔒')+'</span><span class="an">'+a.n+'</span>'
+      +(x.on
+        ?'<span class="ad">'+a.d+'</span>'
+        :'<div class="ach-bar"><div style="width:'+x.pct+'%"></div></div><span class="ad">'+x.cur+' / '+x.max+' · +'+a.c+'🪙</span>')
+      +'</div>';
+  });
+  h+='</div><button type="button" class="ach-more" onclick="toggleAchExpand()">'
+    +(achExpand?'접기 ▲':'전체 '+ACH2.length+'개 보기 ▼')+'</button></div>';
+  const shop=document.querySelector('#main .shop');
+  if(shop)shop.insertAdjacentHTML('beforebegin',h);
 }
 
 /* --- 🛍️ 구매 축하 연출: 사는 순간 아이템이 크게 짜잔! --- */

@@ -2296,6 +2296,17 @@ render=function(){
   injectDayCheck();
   markDone();
 };
+/* --- 플로팅 버튼 분리: 🎯 = 단어 퀴즈 바로, 🔤 = 스펠링 퀴즈 바로 --- */
+(function(){
+  const fb=document.querySelector('.fontbtn');
+  const qz=Array.prototype.slice.call(fb.querySelectorAll('.toolbtn'))
+    .find(function(b){return b.textContent==='🎯';});
+  if(qz){ qz.onclick=startQuiz1; qz.title='단어 퀴즈 (뜻 맞히기)'; }
+  const sp2=document.createElement('button');
+  sp2.className='toolbtn'; sp2.textContent='🔤'; sp2.title='스펠링 퀴즈'; sp2.type='button'; sp2.onclick=startQuiz2;
+  if(qz&&qz.nextSibling)fb.insertBefore(sp2,qz.nextSibling); else fb.insertBefore(sp2,fb.firstChild);
+})();
+
 render();
 /* 이미 조건을 채운 업적이 있으면 즉시 반영 (예: 기존 사용자) */
 setTimeout(checkAch,1200);

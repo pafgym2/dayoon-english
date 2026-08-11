@@ -1327,7 +1327,7 @@ function injectShadowBtn(){
 }
 
 /* --- 📤 백업 / 📥 복원 (부모용) --- */
-const BK_KEYS=['dayoon_stamps','dayoon_coins','dayoon_prog','dayoon_avatar','dayoon_bonuspaid','dayoon_pos_v3','dayoon_fs','dayoon_quizq','dayoon_quizq2','dayoon_gift1','dayoon_ach','dayoon_stats','dayoon_mute','dayoon_wrongw','dayoon_done'];
+const BK_KEYS=['dayoon_stamps','dayoon_coins','dayoon_prog','dayoon_avatar','dayoon_bonuspaid','dayoon_pos_v3','dayoon_fs','dayoon_quizq','dayoon_quizq2','dayoon_gift1','dayoon_ach','dayoon_stats','dayoon_mute','dayoon_wrongw','dayoon_done','dayoon_mastery'];
 function exportData(){
   const o={};
   BK_KEYS.forEach(function(k){try{const v=localStorage.getItem(k); if(v!==null)o[k]=v;}catch(e){}});
@@ -1356,7 +1356,7 @@ render=function(){ _renderPrev(); injectShadowBtn(); };
 document.body.insertAdjacentHTML('beforeend',
   '<div id="quizov" onclick="if(event.target===this)closeQuiz()"><div class="card">'
   +'<div class="rtitle">🎯 단어 퀴즈</div>'
-  +'<div class="rsub">지금까지 배운 새 단어로 5문제! 만점 보너스 있음 · 모드별 하루 3판까지 코인</div>'
+  +'<div class="rsub">정답마다 🪙 획득 + 만점 보너스! 같은 단어는 2번 맞히면 졸업하고 새 단어가 나와요 🎓</div>'
   +'<div id="quizbody"></div></div></div>'
   +'<div id="shadov" onclick="if(event.target===this)closeShadow()"><div class="card">'
   +'<div class="rtitle">🗣️ 따라 말하기</div><div class="rsub" id="sh-num"></div>'
@@ -1815,8 +1815,8 @@ function quizAnswer(i){
     else if(bi===i)b.classList.add('wrong');
     b.disabled=true;
   });
-  if(ok){ quiz.score++; sfx('good'); clearWrong(q.w.en); }
-  else { sfx('bad'); pushWrong(q.w.en); }
+  if(ok){ quiz.score++; sfx('good'); clearWrong(q.w.en); addMastery(q.w.en); }
+  else { sfx('bad'); pushWrong(q.w.en); resetMastery(q.w.en); }
   setTimeout(function(){
     quiz.locked=false; quiz.i++;
     if(quiz.i<quiz.qs.length)quizShow(); else quizEnd();
@@ -2040,20 +2040,33 @@ function openQuiz(){
     +'<button type="button" class="qz-c qz-mode" onclick="startQuiz1()">🎯 퀴즈 1<small>뜻 맞히기 · 정답 +2🪙</small></button>'
     +'<button type="button" class="qz-c qz-mode" onclick="startQuiz2()">🔤 퀴즈 2<small>스펠링 쓰기 · 정답 +3🪙</small></button></div>';
 }
+/* 🎓 단어 졸업: 2번 맞힌 단어는 출제에서 제외 (틀리면 다시 등장) */
+function getMastery(){ return lsGet('dayoon_mastery',{}); }
+function addMastery(en){ const m=getMastery(); m[en]=(m[en]||0)+1; lsSet('dayoon_mastery',m); }
+function resetMastery(en){ const m=getMastery(); if(m[en]){ m[en]=0; lsSet('dayoon_mastery',m); } }
+function masteredCount(){ const m=getMastery(); let c=0; for(var k in m)if(m[k]>=2)c++; return c; }
+function freshPool(pool){
+  const m=getMastery();
+  const fresh=pool.filter(function(w){return (m[w.en]||0)<2;});
+  if(fresh.length>=5)return fresh;
+  // 새 단어가 부족하면 졸업한 단어를 섞어 채움 (퀴즈는 항상 가능)
+  const grad=pool.filter(function(w){return (m[w.en]||0)>=2;}).sort(qrnd);
+  return fresh.concat(grad).slice(0,Math.max(8,fresh.length));
+}
 function startQuiz1(){
   const pool=quizWordPool();
   if(pool.length<4){showToast('퀴즈 낼 단어가 아직 부족해요! 조금 더 배우고 와요 🌱'); return;}
+  const qpool=freshPool(pool);
   const wl=wrongList();
-  const wrongPool=pool.filter(function(w){return wl.indexOf(w.en)>-1;}).sort(qrnd).slice(0,2);
-  const restPool=pool.filter(function(w){return wrongPool.indexOf(w)<0;}).sort(qrnd);
-  const picked=wrongPool.concat(restPool).slice(0,Math.min(5,pool.length)).sort(qrnd);
+  const wrongPool=qpool.filter(function(w){return wl.indexOf(w.en)>-1;}).sort(qrnd).slice(0,2);
+  const restPool=qpool.filter(function(w){return wrongPool.indexOf(w)<0;}).sort(qrnd);
+  const picked=wrongPool.concat(restPool).slice(0,Math.min(5,qpool.length)).sort(qrnd);
   const qs=picked.map(function(w){
     const wrong=pool.filter(function(x){return x.en!==w.en;}).sort(qrnd).slice(0,3);
     return {w:w, mode:Math.random()<0.5?'en2ko':'ko2en',
             choices:wrong.concat([w]).sort(qrnd)};
   });
-  quiz={qs:qs,i:0,score:0,rewarded:quizRewardLeft()>0,locked:false};
-  if(quiz.rewarded)quizUseReward();
+  quiz={qs:qs,i:0,score:0,rewarded:true,locked:false}; // 매판 점수만큼 코인!
   document.getElementById('quizov').style.display='flex';
   quizShow();
 }
@@ -2067,6 +2080,7 @@ function quizEnd(){
   document.getElementById('quizbody').innerHTML=
     '<div class="qz-word" style="margin-top:10px">'+(quiz.score===quiz.qs.length?'💯 완벽해요!':'🎉 잘했어요!')+'</div>'
     +'<div class="qz-label">'+quiz.score+' / '+quiz.qs.length+' 정답'+(coins?' · +'+coins+' 🪙':'')
+    +'<br>🎓 졸업한 단어(2번 맞힘): '+masteredCount()+'개'
     +(wrongList().length?'<br>틀린 단어 '+wrongList().length+'개는 다음 퀴즈에 다시 나와요 💪':'')+'</div>'
     +'<div class="qz-choices" style="margin-top:12px"><button type="button" class="qz-c" onclick="startQuiz1()">한 번 더!</button>'
     +'<button type="button" class="qz-c" onclick="openQuiz()">퀴즈 고르기</button></div>'
@@ -2084,12 +2098,12 @@ function quiz2UseReward(){ const q=lsGet('dayoon_quizq2',{d:'',n:0}); if(q.d!==q
 function startQuiz2(){
   const pool=spellPool();
   if(pool.length<3){showToast('스펠링 퀴즈 낼 단어가 아직 부족해요 🌱'); return;}
+  const qpool=freshPool(pool);
   const wl=wrongList();
-  const wrongPool=pool.filter(function(w){return wl.indexOf(w.en)>-1;}).sort(qrnd).slice(0,2);
-  const rest=pool.filter(function(w){return wrongPool.indexOf(w)<0;}).sort(qrnd);
-  sp={qs:wrongPool.concat(rest).slice(0,Math.min(5,pool.length)).sort(qrnd), i:0, score:0,
-      rewarded:quiz2RewardLeft()>0, ans:[], tiles:[], hist:[], locked:false};
-  if(sp.rewarded)quiz2UseReward();
+  const wrongPool=qpool.filter(function(w){return wl.indexOf(w.en)>-1;}).sort(qrnd).slice(0,2);
+  const rest=qpool.filter(function(w){return wrongPool.indexOf(w)<0;}).sort(qrnd);
+  sp={qs:wrongPool.concat(rest).slice(0,Math.min(5,qpool.length)).sort(qrnd), i:0, score:0,
+      rewarded:true, ans:[], tiles:[], hist:[], locked:false}; // 매판 점수만큼 코인!
   document.getElementById('quizov').style.display='flex';
   spShow();
 }
@@ -2132,9 +2146,9 @@ function spCheck(){
   const q=sp.qs[sp.i], ok=sp.ans.join('')===q.en.toLowerCase();
   const slots=document.getElementById('spslots');
   slots.classList.add(ok?'ok':'no');
-  if(ok){ sp.score++; sfx('good'); clearWrong(q.en); }
+  if(ok){ sp.score++; sfx('good'); clearWrong(q.en); addMastery(q.en); }
   else {
-    sfx('bad'); pushWrong(q.en);
+    sfx('bad'); pushWrong(q.en); resetMastery(q.en);
     slots.insertAdjacentHTML('afterend','<div class="sp-correct">정답: <b>'+q.en+'</b> — 눈으로 한 번 따라 읽어봐!</div>');
     speak(q.en,0.7);
   }
@@ -2150,6 +2164,7 @@ function spEnd(){
   document.getElementById('quizbody').innerHTML=
     '<div class="qz-word" style="margin-top:10px">'+(sp.score===sp.qs.length?'💯 스펠링 마스터!':'🎉 잘했어요!')+'</div>'
     +'<div class="qz-label">'+sp.score+' / '+sp.qs.length+' 정답'+(coins?' · +'+coins+' 🪙':'')
+    +'<br>🎓 졸업한 단어(2번 맞힘): '+masteredCount()+'개'
     +(wrongList().length?'<br>틀린 단어는 다음 퀴즈에 또 나와요 💪':'')+'</div>'
     +'<div class="qz-choices" style="margin-top:12px"><button type="button" class="qz-c" onclick="startQuiz2()">한 번 더!</button>'
     +'<button type="button" class="qz-c" onclick="openQuiz()">퀴즈 고르기</button></div>'

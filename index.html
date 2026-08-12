@@ -2381,26 +2381,26 @@ setDayDone=function(idx,on,silent){
   }
 };
 /* 동물 전신 피규어: 이모지 얼굴 + 그린 몸(앉은 자세 — 몸통·배·앞발·꼬리·날개) */
-function petBodySVG(p){
+function petBodySVG(p){ // 치비 비율: 머리(이모지)가 크고 몸은 작고 동글게
   const bc=p.pbc||'#d9a15e', tc=p.ptc||'#fff3dd', pw=p.ppw||bc, tl=p.ptl||bc;
   let ex='';
-  if(p.pwing)ex+='<path d="M16 40 Q2 26 12 12 Q26 20 27 36 Z" fill="'+tc+'" stroke="'+bc+'" stroke-width="2.5"/>'
-    +'<path d="M84 40 Q98 26 88 12 Q74 20 73 36 Z" fill="'+tc+'" stroke="'+bc+'" stroke-width="2.5"/>';
+  if(p.pwing)ex+='<path d="M26 34 Q12 24 18 8 Q32 14 34 30 Z" fill="'+tc+'" stroke="'+bc+'" stroke-width="2.5"/>'
+    +'<path d="M74 34 Q88 24 82 8 Q68 14 66 30 Z" fill="'+tc+'" stroke="'+bc+'" stroke-width="2.5"/>';
   let tail;
-  if(p.ppuff)tail='<circle cx="85" cy="60" r="10" fill="'+tc+'" stroke="'+bc+'" stroke-width="2"/>';
-  else tail='<path d="M78 60 Q97 55 93 36" stroke="'+tl+'" stroke-width="9" fill="none" stroke-linecap="round"/>'
-    +(p.pttip?'<circle cx="93" cy="37" r="6" fill="#fff"/>':'');
+  if(p.ppuff)tail='<circle cx="76" cy="48" r="8" fill="'+tc+'" stroke="'+bc+'" stroke-width="2"/>';
+  else tail='<path d="M70 48 Q88 44 84 28" stroke="'+tl+'" stroke-width="7" fill="none" stroke-linecap="round"/>'
+    +(p.pttip?'<circle cx="84" cy="29" r="5" fill="#fff"/>':'');
   let stripes='';
-  if(p.pstr)stripes='<path d="M28 40 q7 9 1 18" stroke="#7a4a12" stroke-width="4" fill="none" stroke-linecap="round"/>'
-    +'<path d="M72 40 q-7 9 -1 18" stroke="#7a4a12" stroke-width="4" fill="none" stroke-linecap="round"/>';
-  return '<svg class="pbod" viewBox="0 0 100 80" aria-hidden="true">'+ex+tail
-    +'<ellipse cx="50" cy="52" rx="30" ry="26" fill="'+bc+'"/>'+stripes
-    +'<ellipse cx="50" cy="61" rx="12.5" ry="10.5" fill="'+tc+'"/>'
-    +'<ellipse cx="33" cy="75" rx="9" ry="5" fill="'+pw+'"/>'
-    +'<ellipse cx="67" cy="75" rx="9" ry="5" fill="'+pw+'"/></svg>';
+  if(p.pstr)stripes='<path d="M32 34 q5 7 0 14" stroke="#7a4a12" stroke-width="3.5" fill="none" stroke-linecap="round"/>'
+    +'<path d="M68 34 q-5 7 0 14" stroke="#7a4a12" stroke-width="3.5" fill="none" stroke-linecap="round"/>';
+  return '<svg class="pbod" viewBox="0 0 100 64" aria-hidden="true">'+ex+tail
+    +'<ellipse cx="50" cy="38" rx="23" ry="21" fill="'+bc+'"/>'+stripes
+    +'<ellipse cx="50" cy="44" rx="11" ry="9" fill="'+tc+'"/>'
+    +'<ellipse cx="38" cy="58" rx="7.5" ry="4.5" fill="'+pw+'"/>'
+    +'<ellipse cx="62" cy="58" rx="7.5" ry="4.5" fill="'+pw+'"/></svg>';
 }
 function petFigureHTML(pet,lv,base){ // base: 표시 크기 배율 (무대 1, 홈 미니 0.3)
-  const sc=(base||1)*[0.52,0.74,0.95][lv];
+  const sc=(base||1)*[0.55,0.75,0.95][lv];
   if(pet.fullb)return '<span class="pet-fig full" style="transform:scale('+sc+')"><span class="pface full">'+pet.e+'</span></span>';
   return '<span class="pet-fig" style="transform:scale('+sc+')">'+petBodySVG(pet)+'<span class="pface">'+pet.e+'</span></span>';
 }
@@ -2452,9 +2452,9 @@ render();
 
 <style>
   /* ===== 🐣 동물 친구 성장 ===== */
-  .pet-fig{position:relative;display:inline-block;width:100px;height:112px;transform-origin:bottom center;}
-  .pet-fig .pbod{position:absolute;left:0;bottom:0;width:100px;height:80px;filter:drop-shadow(0 2px 3px rgba(0,0,0,.14));}
-  .pet-fig .pface{position:absolute;top:17px;left:50%;transform:translateX(-50%);font-size:46px;line-height:1;z-index:2;filter:drop-shadow(0 2px 2px rgba(0,0,0,.12));}
+  .pet-fig{position:relative;display:inline-block;width:100px;height:110px;transform-origin:bottom center;}
+  .pet-fig .pbod{position:absolute;left:0;bottom:0;width:100px;height:64px;filter:drop-shadow(0 2px 3px rgba(0,0,0,.14));}
+  .pet-fig .pface{position:absolute;top:4px;left:50%;transform:translateX(-50%);font-size:60px;line-height:1;z-index:2;filter:drop-shadow(0 2px 2px rgba(0,0,0,.12));}
   .pet-fig.full{width:100px;height:100px;}
   .pet-fig .pface.full{position:absolute;top:auto;bottom:0;left:50%;transform:translateX(-50%);font-size:78px;}
   .st-pet{position:absolute;bottom:8px;right:3%;z-index:4;font-size:0;line-height:0;}

@@ -741,17 +741,17 @@ const ITEMS=[
   {id:'person_astro',slot:'person', e:'🧑‍🚀',n:'우주인',   p:450, r:'e', full:true},
   {id:'person_fairy',slot:'person', e:'🧚', n:'요정',      p:600, r:'l', full:true},
   {id:'person_wizard',slot:'person',e:'🧙', n:'마법사',    p:600, r:'l', full:true},
-  // 🐾 동물 친구 (사람과 함께 키워요!) — pbc: 몸 색, ptc: 배 색, ppw: 발 색, pwing: 날개, ppuff: 솜꼬리, pstr: 줄무늬, ptl: 꼬리 색, pttip: 꼬리 흰 끝, fullb: 이모지 자체가 전신
-  {id:'pet_dog',    slot:'pet', e:'🐶', n:'강아지',  p:0,   r:'c', pbc:'#d9a15e', ptc:'#f7e6c9'},
-  {id:'pet_cat',    slot:'pet', e:'🐱', n:'고양이',  p:100, r:'c', pbc:'#f5c04e', ptc:'#fff3d4'},
-  {id:'pet_rabbit', slot:'pet', e:'🐰', n:'토끼',    p:120, r:'c', pbc:'#f2eff5', ptc:'#ffffff', ppuff:1},
-  {id:'pet_bear',   slot:'pet', e:'🐻', n:'곰돌이',  p:140, r:'c', pbc:'#a8743f', ptc:'#dcbb8b'},
-  {id:'pet_penguin',slot:'pet', e:'🐧', n:'펭귄',    p:180, r:'r', fullb:1},
-  {id:'pet_fox',    slot:'pet', e:'🦊', n:'여우',    p:200, r:'r', pbc:'#f0862f', ptc:'#ffffff', pttip:1},
-  {id:'pet_panda',  slot:'pet', e:'🐼', n:'판다',    p:240, r:'r', pbc:'#f4f4f4', ptc:'#ffffff', ppw:'#3d3d3d'},
-  {id:'pet_tiger',  slot:'pet', e:'🐯', n:'호랑이',  p:320, r:'e', pbc:'#f59b3e', ptc:'#ffffff', pstr:1},
-  {id:'pet_unicorn',slot:'pet', e:'🦄', n:'유니콘',  p:550, r:'l', pbc:'#f9edfa', ptc:'#ffffff', ptl:'#c9a0f0'},
-  {id:'pet_dragon', slot:'pet', e:'🐲', n:'아기용',  p:750, r:'l', pbc:'#74c96e', ptc:'#d6efad', pwing:1},
+  // 🐾 동물 친구 (사람과 함께 키워요!) — fe: 전신 이모지(있으면 그대로 사용), 없으면 몸을 그림(pbl/pbd: 몸 밝은·어두운 색, ptc: 배, plimb: 팔다리 색, pwing: 날개, ptl: 꼬리 색, pttip: 꼬리 흰 끝)
+  {id:'pet_dog',    slot:'pet', e:'🐶', n:'강아지',  p:0,   r:'c', fe:'🐕'},
+  {id:'pet_cat',    slot:'pet', e:'🐱', n:'고양이',  p:100, r:'c', fe:'🐈'},
+  {id:'pet_rabbit', slot:'pet', e:'🐰', n:'토끼',    p:120, r:'c', fe:'🐇'},
+  {id:'pet_bear',   slot:'pet', e:'🐻', n:'곰돌이',  p:140, r:'c', pbl:'#b98850', pbd:'#8a5f33', ptc:'#e7c99a'},
+  {id:'pet_penguin',slot:'pet', e:'🐧', n:'펭귄',    p:180, r:'r', fe:'🐧'},
+  {id:'pet_fox',    slot:'pet', e:'🦊', n:'여우',    p:200, r:'r', pbl:'#ff9a3d', pbd:'#d96b1e', ptc:'#ffffff', pttip:1},
+  {id:'pet_panda',  slot:'pet', e:'🐼', n:'판다',    p:240, r:'r', pbl:'#ffffff', pbd:'#dfdfe4', ptc:'#ffffff', plimb:'#2b2b2e'},
+  {id:'pet_tiger',  slot:'pet', e:'🐯', n:'호랑이',  p:320, r:'e', fe:'🐅'},
+  {id:'pet_unicorn',slot:'pet', e:'🦄', n:'유니콘',  p:550, r:'l', pbl:'#fdfbff', pbd:'#d8c6ec', ptc:'#f1e8fa', ptl:'#b98ae8'},
+  {id:'pet_dragon', slot:'pet', e:'🐲', n:'아기용',  p:750, r:'l', fe:'🐉'},
   // 🎩 머리
   {id:'hat_ribbon', slot:'hat', e:'🎀', n:'리본',    p:50,  r:'c'},
   {id:'hat_flower', slot:'hat', e:'🌸', n:'꽃',      p:60,  r:'c'},
@@ -2381,27 +2381,28 @@ setDayDone=function(idx,on,silent){
   }
 };
 /* 동물 전신 피규어: 이모지 얼굴 + 그린 몸(앉은 자세 — 몸통·배·앞발·꼬리·날개) */
-function petBodySVG(p){ // 치비 비율: 머리(이모지)가 크고 몸은 작고 동글게
-  const bc=p.pbc||'#d9a15e', tc=p.ptc||'#fff3dd', pw=p.ppw||bc, tl=p.ptl||bc;
-  let ex='';
-  if(p.pwing)ex+='<path d="M26 34 Q12 24 18 8 Q32 14 34 30 Z" fill="'+tc+'" stroke="'+bc+'" stroke-width="2.5"/>'
-    +'<path d="M74 34 Q88 24 82 8 Q68 14 66 30 Z" fill="'+tc+'" stroke="'+bc+'" stroke-width="2.5"/>';
+function petBodySVG(p){ // 전신 이모지가 없는 동물용: 그라데이션 음영 + 뒷다리·앞다리·발 (이모지 질감에 맞춤)
+  const gid='pg_'+p.id, bl=p.pbl||'#d9a15e', bd=p.pbd||'#a8743f', tc=p.ptc||'#fff', lb=p.plimb||bl, ft=p.plimb?'#1f1f22':bd;
   let tail;
-  if(p.ppuff)tail='<circle cx="76" cy="48" r="8" fill="'+tc+'" stroke="'+bc+'" stroke-width="2"/>';
-  else tail='<path d="M70 48 Q88 44 84 28" stroke="'+tl+'" stroke-width="7" fill="none" stroke-linecap="round"/>'
-    +(p.pttip?'<circle cx="84" cy="29" r="5" fill="#fff"/>':'');
-  let stripes='';
-  if(p.pstr)stripes='<path d="M32 34 q5 7 0 14" stroke="#7a4a12" stroke-width="3.5" fill="none" stroke-linecap="round"/>'
-    +'<path d="M68 34 q-5 7 0 14" stroke="#7a4a12" stroke-width="3.5" fill="none" stroke-linecap="round"/>';
-  return '<svg class="pbod" viewBox="0 0 100 64" aria-hidden="true">'+ex+tail
-    +'<ellipse cx="50" cy="38" rx="23" ry="21" fill="'+bc+'"/>'+stripes
-    +'<ellipse cx="50" cy="44" rx="11" ry="9" fill="'+tc+'"/>'
-    +'<ellipse cx="38" cy="58" rx="7.5" ry="4.5" fill="'+pw+'"/>'
-    +'<ellipse cx="62" cy="58" rx="7.5" ry="4.5" fill="'+pw+'"/></svg>';
+  if(p.pttip)tail='<path d="M68 50 Q92 46 88 24" stroke="'+bd+'" stroke-width="11" fill="none" stroke-linecap="round"/><circle cx="88" cy="25" r="6" fill="#fff"/>';
+  else if(p.ptl)tail='<path d="M70 48 Q90 44 86 26" stroke="'+p.ptl+'" stroke-width="8" fill="none" stroke-linecap="round"/>';
+  else tail='<circle cx="74" cy="50" r="6" fill="'+bd+'"/>';
+  return '<svg class="pbod" viewBox="0 0 100 66" aria-hidden="true">'
+    +'<defs><radialGradient id="'+gid+'" cx="50%" cy="30%" r="80%"><stop offset="0%" stop-color="'+bl+'"/><stop offset="100%" stop-color="'+bd+'"/></radialGradient></defs>'
+    +tail
+    +'<ellipse cx="26" cy="50" rx="13" ry="12" fill="'+(p.plimb||bd)+'"/>'  // 뒷다리(웅크린 허벅지)
+    +'<ellipse cx="74" cy="50" rx="13" ry="12" fill="'+(p.plimb||bd)+'"/>'
+    +'<ellipse cx="50" cy="38" rx="24" ry="24" fill="url(#'+gid+')"/>'      // 몸통
+    +'<ellipse cx="50" cy="45" rx="12" ry="10" fill="'+tc+'"/>'             // 배
+    +'<rect x="38" y="44" width="9" height="18" rx="4.5" fill="'+lb+'"/>'   // 앞다리
+    +'<rect x="53" y="44" width="9" height="18" rx="4.5" fill="'+lb+'"/>'
+    +'<ellipse cx="42.5" cy="62.5" rx="6.5" ry="3.4" fill="'+ft+'"/>'       // 발
+    +'<ellipse cx="57.5" cy="62.5" rx="6.5" ry="3.4" fill="'+ft+'"/></svg>';
 }
 function petFigureHTML(pet,lv,base){ // base: 표시 크기 배율 (무대 1, 홈 미니 0.3)
   const sc=(base||1)*[0.55,0.75,0.95][lv];
-  if(pet.fullb)return '<span class="pet-fig full" style="transform:scale('+sc+')"><span class="pface full">'+pet.e+'</span></span>';
+  const fe=pet.fe||(pet.fullb?pet.e:null); // 전신 이모지가 있으면 그대로 (제일 사실적·귀여움)
+  if(fe)return '<span class="pet-fig full" style="transform:scale('+sc+')"><span class="pface full">'+fe+'</span></span>';
   return '<span class="pet-fig" style="transform:scale('+sc+')">'+petBodySVG(pet)+'<span class="pface">'+pet.e+'</span></span>';
 }
 /* 아바타에 성장 반영: 전신 + 단계별 몸집 */
@@ -2453,17 +2454,17 @@ render();
 <style>
   /* ===== 🐣 동물 친구 성장 ===== */
   .pet-fig{position:relative;display:inline-block;width:100px;height:110px;transform-origin:bottom center;}
-  .pet-fig .pbod{position:absolute;left:0;bottom:0;width:100px;height:64px;filter:drop-shadow(0 2px 3px rgba(0,0,0,.14));}
+  .pet-fig .pbod{position:absolute;left:0;bottom:0;width:100px;height:66px;filter:drop-shadow(0 2px 3px rgba(0,0,0,.14));}
   .pet-fig .pface{position:absolute;top:4px;left:50%;transform:translateX(-50%);font-size:60px;line-height:1;z-index:2;filter:drop-shadow(0 2px 2px rgba(0,0,0,.12));}
-  .pet-fig.full{width:100px;height:100px;}
-  .pet-fig .pface.full{position:absolute;top:auto;bottom:0;left:50%;transform:translateX(-50%);font-size:78px;}
-  .st-pet{position:absolute;bottom:8px;right:3%;z-index:4;font-size:0;line-height:0;}
+  .pet-fig.full{width:100px;height:86px;}
+  .pet-fig .pface.full{position:absolute;top:auto;bottom:0;left:50%;transform:translateX(-50%);font-size:84px;filter:drop-shadow(0 3px 4px rgba(0,0,0,.18));}
+  .st-pet{position:absolute;bottom:30px;right:3%;z-index:4;font-size:0;line-height:0;}
   .st-pet .pet-fig{transform-origin:bottom center;}
   .m-pet{position:absolute;right:2px;bottom:2px;z-index:4;font-size:0;line-height:0;}
   .m-pet .pet-fig{transform-origin:bottom right;}
   .gpet{text-align:center;margin:6px 0 0;min-height:100px;}
   .gpet .pet-fig{transform-origin:bottom center;}
-  .st-lv{position:absolute;bottom:2px;right:7%;transform:translateX(18%);z-index:5;
+  .st-lv{position:absolute;bottom:7px;right:3%;z-index:5;
     font-size:10.5px;font-weight:800;color:#fff;padding:2px 8px;border-radius:99px;
     background:rgba(0,0,0,.38);}
   .st-lv.lv2{background:linear-gradient(90deg,#f7b733,#fc4a1a);}

@@ -2570,8 +2570,79 @@ importData=function(){
       lsSet('dayoon_done',arr);
     }
     render(); showToast('복원 완료! 도장·코인·진도를 불러왔어요 ✅');
+    if(typeof syncMark==='function')syncMark(); // 복원한 기록을 클라우드에도 반영
   }catch(e){showToast('코드가 올바르지 않아요 😢 다시 확인해주세요');}
 };
 </script>
+
+<script>
+/* --- ☁️ 클라우드 자동 동기화 (Supabase) ---
+   기록이 바뀌면 4초 뒤 자동 업로드, 앱을 열 때마다 서버가 최신이면 내려받음.
+   기기별 마지막 수정시각(dayoon_mts, ISO 문자열)을 비교해 최신 쪽이 이김.
+   오프라인이면 조용히 건너뜀(다음 온라인 때 밀어올림) — PWA 오프라인 동작 유지. */
+const SYNC_URL='https://dzmxwsxcwtugnyyfvnja.supabase.co/rest/v1/dayoon_sync';
+const SYNC_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR6bXh3c3hjd3R1Z255eWZ2bmphIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMzUxNjcsImV4cCI6MjA5NjgxMTE2N30.PkzQD7JJuFdtMGWzm2FC9HFzf1wVW1Wh9wg41SxJKzg';
+const SYNC_ID='dy_fam_dayoon';
+function syncHdrs(){ return {'apikey':SYNC_KEY,'Authorization':'Bearer '+SYNC_KEY,'Content-Type':'application/json'}; }
+function syncState(){ const o={}; BK_KEYS.forEach(function(k){ const v=localStorage.getItem(k); if(v!==null)o[k]=v; }); return o; }
+let syncTimer=null, syncReady=false;
+setTimeout(function(){syncReady=true;},3000); // 로드 직후 자동 저장(웰컴선물·마이그레이션)은 변경으로 안 침 — 신규 기기가 가족 기록을 덮어쓰는 사고 방지
+function syncMark(){
+  if(!syncReady)return;
+  try{localStorage.setItem('dayoon_mts',new Date().toISOString());}catch(e){}
+  clearTimeout(syncTimer); syncTimer=setTimeout(syncPush,4000);
+}
+function syncPush(){
+  if(!navigator.onLine)return;
+  const mts=localStorage.getItem('dayoon_mts');
+  if(!mts)return; // 이 기기에서 실제 변경이 있었던 적이 없으면 올리지 않음
+  fetch(SYNC_URL+'?on_conflict=id',{method:'POST',
+    headers:Object.assign(syncHdrs(),{'Prefer':'resolution=merge-duplicates'}),
+    body:JSON.stringify({id:SYNC_ID,payload:syncState(),mts:mts}),keepalive:true})
+    .then(function(r){ if(r.ok)try{localStorage.setItem('dayoon_synced',mts);}catch(e){} })
+    .catch(function(){});
+}
+function syncPull(){
+  if(!navigator.onLine)return;
+  fetch(SYNC_URL+'?id=eq.'+SYNC_ID+'&select=payload,mts',{headers:syncHdrs()})
+    .then(function(r){ return r.ok?r.json():null; })
+    .then(function(rows){
+      if(!rows)return;
+      if(!rows.length){ if(localStorage.getItem('dayoon_mts'))syncPush(); return; } // 서버가 비었으면 내 기록을 올림
+      const row=rows[0], localM=localStorage.getItem('dayoon_mts')||'';
+      const rT=Date.parse(row.mts||0)||0, lT=Date.parse(localM||0)||0; // 형식 무관 시각 비교
+      if(rT>lT){
+        Object.keys(row.payload||{}).forEach(function(k){
+          if(BK_KEYS.indexOf(k)>-1)try{localStorage.setItem(k,row.payload[k]);}catch(e){}
+        });
+        try{localStorage.setItem('dayoon_mts',row.mts); localStorage.setItem('dayoon_synced',row.mts);}catch(e){}
+        render(); showToast('☁️ 다른 기기 기록을 불러왔어요');
+      } else if(lT>rT)syncPush(); // 내가 더 최신(오프라인 연습 등) → 올림
+    }).catch(function(){});
+}
+/* 저장 훅: 의미 있는 변경은 전부 lsSet 또는 saveStamps를 지나감 */
+const _lsSetSync=lsSet;
+lsSet=function(k,v){ _lsSetSync(k,v); if(BK_KEYS.indexOf(k)>-1)syncMark(); };
+const _saveStampsSync=saveStamps;
+saveStamps=function(s){ _saveStampsSync(s); syncMark(); };
+document.addEventListener('visibilitychange',function(){
+  if(document.hidden){ clearTimeout(syncTimer); syncPush(); } else syncPull();
+});
+/* 부모 박스에 동기화 안내 한 줄 */
+function injectSyncNote(){
+  if(cur.m!==-3)return;
+  const pb=document.querySelector('#main .parentbox');
+  if(pb&&!pb.querySelector('.syncnote'))
+    pb.insertAdjacentHTML('beforeend','<span class="syncnote">☁️ 자동 동기화 켜짐 — 인터넷만 되면 집 맥·폰·다른 기기와 기록이 저절로 맞춰져요</span>');
+}
+const _renderSync=render;
+render=function(){ _renderSync(); injectSyncNote(); };
+render();
+syncPull();
+</script>
+
+<style>
+  .syncnote{display:block;width:100%;font-size:10.5px;color:var(--soft);margin-top:8px;line-height:1.5;}
+</style>
 </body>
 </html>

@@ -741,6 +741,17 @@ const ITEMS=[
   {id:'person_astro',slot:'person', e:'🧑‍🚀',n:'우주인',   p:450, r:'e', full:true},
   {id:'person_fairy',slot:'person', e:'🧚', n:'요정',      p:600, r:'l', full:true},
   {id:'person_wizard',slot:'person',e:'🧙', n:'마법사',    p:600, r:'l', full:true},
+  // 👕 옷 (그린 몸에 입힘 — bt: 원피스/바지, bc·pc: 색, gr: 그라데이션, dc: 장식, sc: 장식 색)
+  {id:'cl_sky',    slot:'clothes', e:'👗', n:'하늘 원피스',   p:60,  r:'c', bt:'dress', bc:'#8fd3ff'},
+  {id:'cl_tee',    slot:'clothes', e:'👕', n:'노랑티·청바지', p:60,  r:'c', bt:'pants', bc:'#ffd94d', pc:'#4a6fd8'},
+  {id:'cl_hoodie', slot:'clothes', e:'🧥', n:'초록 후드',     p:80,  r:'c', bt:'pants', bc:'#55c98a', pc:'#3d5a80'},
+  {id:'cl_stripe', slot:'clothes', e:'🎽', n:'줄무늬 티',     p:100, r:'c', bt:'pants', bc:'#ffffff', pc:'#4a5568', dc:'stripes', sc:'#ff6b9d'},
+  {id:'cl_ribbon', slot:'clothes', e:'👗', n:'리본 원피스',   p:120, r:'r', bt:'dress', bc:'#ffb3c9', dc:'band', sc:'#ffffff'},
+  {id:'cl_uniform',slot:'clothes', e:'👔', n:'멋쟁이 교복',   p:140, r:'r', bt:'pants', bc:'#ffffff', pc:'#3a4a6b', dc:'tie', sc:'#3a4a6b'},
+  {id:'cl_soccer', slot:'clothes', e:'⚽', n:'축구 유니폼',   p:160, r:'r', bt:'pants', bc:'#ff5f5f', pc:'#ffffff', dc:'num', sc:'#ffffff'},
+  {id:'cl_hanbok', slot:'clothes', e:'🎎', n:'고운 한복',     p:220, r:'e', bt:'dress', bc:'#ff8fb8', dc:'hanbok'},
+  {id:'cl_princess',slot:'clothes',e:'👸', n:'공주 드레스',   p:300, r:'e', bt:'dress', gr:['#ffb3d9','#c9a0f0'], dc:'sparkle'},
+  {id:'cl_rainbow',slot:'clothes', e:'🌈', n:'무지개 드레스', p:500, r:'l', bt:'dress', gr:['#ffd1dc','#fff3b0','#bce4ff']},
   // 🐾 동물 친구 (사람과 함께 키워요!) — fe: 전신 이모지(있으면 그대로 사용), 없으면 몸을 그림(pbl/pbd: 몸 밝은·어두운 색, ptc: 배, plimb: 팔다리 색, pwing: 날개, ptl: 꼬리 색, pttip: 꼬리 흰 끝)
   {id:'pet_dog',    slot:'pet', e:'🐶', n:'강아지',  p:0,   r:'c', fe:'🐕'},
   {id:'pet_cat',    slot:'pet', e:'🐱', n:'고양이',  p:100, r:'c', fe:'🐈'},
@@ -801,7 +812,7 @@ const ITEMS=[
   {id:'bg_aurora',  slot:'bg', e:'🌌', n:'오로라',  p:700, r:'l', css:'linear-gradient(160deg,#134e5e,#5fa47a,#c2ffd8)'}
 ];
 const RLBL={c:'일반',r:'레어',e:'에픽',l:'전설'};
-const SLOTS=['person','pet','hat','face','neck','hand','bg'];
+const SLOTS=['person','clothes','pet','hat','face','neck','hand','bg'];
 const GACHA=120;
 let shopCat='person';
 
@@ -818,28 +829,44 @@ function saveAva(a){ lsSet('dayoon_avatar',a); }
 function itemById(id){ return ITEMS.find(function(i){return i.id===id;}); }
 function bgCss(id){ const b=itemById(id); return (b&&b.css)?b.css:'linear-gradient(135deg,#ffd9ec,#ffeaf4)'; }
 
-function bodySVG(per){ // 몸: 팔 2개(오른팔은 위로 들어 아이템을 쥠) + 옷 + 다리 + 신발
-  const bc=per.bc||'#ff8fb8', pc=per.pc||'#4a5568', skin='#f8c94e';
+function bodySVG(per,cl){ // 몸: 팔 2개 + 옷(cl을 입었으면 그 옷, 아니면 캐릭터 기본) + 다리 + 신발
+  const o=cl||per;
+  const skin='#f8c94e', pc=o.pc||'#4a5568';
+  let fill, defs='';
+  if(o.gr){ const gid='cg_'+(o.id||'d');
+    defs='<defs><linearGradient id="'+gid+'" x1="0" y1="0" x2="0" y2="1">'
+      +o.gr.map(function(c,i){return '<stop offset="'+Math.round(i/(o.gr.length-1)*100)+'%" stop-color="'+c+'"/>';}).join('')
+      +'</linearGradient></defs>';
+    fill='url(#'+gid+')';
+  } else fill=o.bc||'#ff8fb8';
   const arms='<path d="M36 16 Q18 28 14 46" stroke="'+skin+'" stroke-width="9" fill="none" stroke-linecap="round"/>'
     +'<path d="M64 16 Q82 10 90 -2" stroke="'+skin+'" stroke-width="9" fill="none" stroke-linecap="round"/>'
     +'<rect x="44" y="-8" width="12" height="18" rx="5" fill="'+skin+'"/>'; // 목
   let torso;
-  if(per.bt==='pants'){
-    torso='<path d="M50 6 L32 12 Q26 34 30 52 L70 52 Q74 34 68 12 Z" fill="'+bc+'"/>'
+  if(o.bt==='pants'){
+    torso='<path d="M50 6 L32 12 Q26 34 30 52 L70 52 Q74 34 68 12 Z" fill="'+fill+'"/>'
       +'<path d="M32 52 L30 88 L44 88 L48 58 L52 58 L56 88 L70 88 L68 52 Z" fill="'+pc+'"/>'
       +'<ellipse cx="37" cy="92" rx="9" ry="4.5" fill="#5b4636"/><ellipse cx="63" cy="92" rx="9" ry="4.5" fill="#5b4636"/>';
   } else {
-    torso='<path d="M50 6 L32 12 L20 66 Q50 78 80 66 L68 12 Z" fill="'+bc+'"/>'
+    torso='<path d="M50 6 L32 12 L20 66 Q50 78 80 66 L68 12 Z" fill="'+fill+'"/>'
       +'<rect x="39" y="68" width="8" height="20" rx="4" fill="'+skin+'"/>'
       +'<rect x="53" y="68" width="8" height="20" rx="4" fill="'+skin+'"/>'
       +'<ellipse cx="43" cy="92" rx="8" ry="4" fill="#5b4636"/><ellipse cx="57" cy="92" rx="8" ry="4" fill="#5b4636"/>';
   }
-  return '<svg class="bod" viewBox="-4 -8 108 104" aria-hidden="true">'+arms+torso+'</svg>';
+  let deco='';
+  if(o.dc==='stripes')deco='<rect x="34" y="16" width="32" height="5" rx="2.5" fill="'+o.sc+'"/><rect x="32" y="28" width="36" height="5" rx="2.5" fill="'+o.sc+'"/>';
+  else if(o.dc==='band')deco='<rect x="30" y="28" width="40" height="6" rx="3" fill="'+o.sc+'" opacity=".9"/>';
+  else if(o.dc==='tie')deco='<path d="M50 10 L46 15 L50 34 L54 15 Z" fill="'+o.sc+'"/>';
+  else if(o.dc==='num')deco='<text x="50" y="40" font-size="24" font-weight="800" text-anchor="middle" fill="'+o.sc+'">7</text>';
+  else if(o.dc==='hanbok')deco='<path d="M50 6 L32 12 L29 32 Q50 40 71 32 L68 12 Z" fill="#fff"/>'
+    +'<path d="M50 14 L46 33" stroke="#e04a5f" stroke-width="4" stroke-linecap="round"/><path d="M50 14 L57 30" stroke="#e04a5f" stroke-width="4" stroke-linecap="round"/>';
+  else if(o.dc==='sparkle')deco='<circle cx="38" cy="46" r="2.5" fill="#fff"/><circle cx="58" cy="54" r="3" fill="#fff"/><circle cx="48" cy="63" r="2" fill="#fff"/><circle cx="64" cy="42" r="2" fill="#fff"/>';
+  return '<svg class="bod" viewBox="-4 -8 108 104" aria-hidden="true">'+defs+arms+torso+deco+'</svg>';
 }
-function figureHTML(){ // 사람 전신 = 이모지 머리 + 그려진 몸, 들어올린 손에 아이템
+function figureHTML(){ // 사람 전신 = 이모지 머리 + 그려진 몸(옷 갈아입기 가능), 들어올린 손에 아이템
   const a=getAva(), per=itemById(a.eq.person)||itemById('person_girl');
   let h='<span class="fig'+(per.full?' full':'')+'">';
-  if(!per.full)h+=bodySVG(per);
+  if(!per.full){ const cl=itemById(a.eq.clothes); h+=bodySVG(per,(cl&&cl.bt)?cl:null); }
   h+='<span class="f-head">'+per.e+'</span>';
   const hat=itemById(a.eq.hat); if(hat)h+='<span class="f-hat">'+hat.e+'</span>';
   const fa=itemById(a.eq.face); if(fa)h+='<span class="f-face">'+fa.e+'</span>';
@@ -876,7 +903,7 @@ function tapItem(id){
   showToast(it.e+' '+it.n+' 샀어요! ('+RLBL[it.r]+') −'+it.p+' 🪙'); render();
 }
 function setShopCat(sl){ shopCat=sl; render(); }
-function resetOutfit(){ const a=getAva(); a.eq.hat=a.eq.face=a.eq.neck=a.eq.hand=null; a.eq.bg='bg_none'; saveAva(a); showToast('기본 모습으로! 🧺'); render(); }
+function resetOutfit(){ const a=getAva(); a.eq.hat=a.eq.face=a.eq.neck=a.eq.hand=a.eq.clothes=null; a.eq.bg='bg_none'; saveAva(a); showToast('기본 모습으로! 🧺'); render(); }
 function gacha(){
   const a=getAva(), c=getCoins();
   if(c<GACHA){ showToast('뽑기는 🪙'+GACHA+' 필요해요! 도장 '+Math.ceil((GACHA-c)/10)+'개만 더 💪'); return; }
@@ -890,7 +917,7 @@ function gacha(){
 }
 function shopHTML(){
   const a=getAva(), c=getCoins();
-  const cats=[['person','🧒','사람'],['pet','🐾','동물'],['hat','🎩','머리'],['face','🕶️','얼굴'],['neck','🎀','목'],['hand','🎈','손'],['bg','🖼️','배경']];
+  const cats=[['person','🧒','사람'],['clothes','👕','옷'],['pet','🐾','동물'],['hat','🎩','머리'],['face','🕶️','얼굴'],['neck','🎀','목'],['hand','🎈','손'],['bg','🖼️','배경']];
   if(SLOTS.indexOf(shopCat)<0)shopCat='person';
   const total=ITEMS.length, own=ITEMS.filter(function(i){return a.owned.indexOf(i.id)>-1;}).length;
   let h='<div class="shop"><div class="shop-head"><h3>🎨 꾸미기 상점</h3><span class="coinchip">🪙 '+c+'</span></div>';
@@ -911,7 +938,9 @@ function shopHTML(){
       +'<span class="rz">'+RLBL[it.r]+'</span></button>';
   });
   h+='</div>';
-  h+='<p class="home-note" style="margin:10px 0 0">도장 1개 = 🪙10 · 7개 +50 🎁 · 28개 +200 🏆 · 등급이 높을수록 특별해요!</p></div>';
+  h+='<p class="home-note" style="margin:10px 0 0">'
+    +(shopCat==='clothes'?'👕 옷은 그려진 캐릭터(여자아이·남자아이 등)가 입어요. 변신 캐릭터(슈퍼히어로·우주인·요정·마법사)는 자기 의상만!<br>':'')
+    +'도장 1개 = 🪙10 · 7개 +50 🎁 · 28개 +200 🏆 · 등급이 높을수록 특별해요!</p></div>';
   return h;
 }
 
@@ -2179,7 +2208,7 @@ function spEnd(){
 /* --- 📖 내 아이템 도감: 산 것 한눈에 보기 (누르면 착용) --- */
 function openColl(){
   const a=getAva();
-  const cats=[['person','🧒 사람'],['pet','🐾 동물 친구'],['hat','🎩 머리'],['face','🕶️ 얼굴'],['neck','🎀 목'],['hand','🎈 손'],['bg','🖼️ 배경']];
+  const cats=[['person','🧒 사람'],['clothes','👕 옷'],['pet','🐾 동물 친구'],['hat','🎩 머리'],['face','🕶️ 얼굴'],['neck','🎀 목'],['hand','🎈 손'],['bg','🖼️ 배경']];
   const own=ITEMS.filter(function(i){return a.owned.indexOf(i.id)>-1;}).length;
   let h='<div class="rtitle">📖 다윤이의 아이템</div>'
     +'<div class="rsub">모은 아이템 '+own+' / '+ITEMS.length+' · 누르면 바로 착용!</div>';
@@ -2223,7 +2252,7 @@ const ACH2=[
   {id:'a_gacha10', e:'🎰',n:'뽑기 매니아',  d:'랜덤 뽑기 10번',       c:150, r:'r', p:function(){return [getStats().ga,10];}},
   {id:'a_col10',   e:'🧸',n:'수집가',       d:'아이템 10개 모으기',   c:50,  r:'c', p:function(){return [getAva().owned.length,10];}},
   {id:'a_col30',   e:'💎',n:'대수집가',     d:'아이템 30개 모으기',   c:200, r:'r', p:function(){return [getAva().owned.length,30];}},
-  {id:'a_col63',   e:'🏰',n:'전부 다 모았다',d:'아이템 63개 전부!',   c:1000,r:'l', p:function(){return [getAva().owned.length,ITEMS.length];}},
+  {id:'a_col63',   e:'🏰',n:'전부 다 모았다',d:'아이템 전부 모으기!', c:1000,r:'l', p:function(){return [getAva().owned.length,ITEMS.length];}},
   {id:'a_legend',  e:'🦄',n:'전설의 주인',  d:'전설 등급 아이템 갖기',c:150, r:'e', p:function(){const a=getAva();return [ITEMS.filter(function(i){return i.r==='l'&&a.owned.indexOf(i.id)>-1;}).length>0?1:0,1];}},
   {id:'a_m1',      e:'🚀',n:'1개월차 완주', d:'1개월차 28일 모두 완료',c:100, r:'r', p:function(){const s=doneSet();let c=0;for(let i=0;i<28;i++)if(s.has(i))c++;return [c,28];}},
   {id:'a_q1',      e:'🌱',n:'1분기 돌파',   d:'1~3개월차 84일 완료',  c:300, r:'e', p:function(){const s=doneSet();let c=0;for(let i=0;i<84;i++)if(s.has(i))c++;return [c,84];}},

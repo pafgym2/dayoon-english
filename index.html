@@ -2743,5 +2743,211 @@ syncPull();
 <style>
   .syncnote{display:block;width:100%;font-size:10.5px;color:var(--soft);margin-top:8px;line-height:1.5;}
 </style>
+
+<script>
+/* --- 라이브러리 (오프라인용 인라인) ---
+   ZzFX v1.3.2 (MIT) © Frank Force — https://github.com/KilledByAPixel/ZzFX
+   js-confetti v0.12.0 (MIT) © Nikolay Yavorsky — https://github.com/loonywizard/js-confetti */
+'use strict';
+let // ZzFXMicro - Zuper Zmall Zound Zynth - v1.3.2 by Frank Force
+zzfxV=.3,               // volume
+zzfxX=null,          // audio context (첫 재생 시 생성 — 자동재생 경고 방지)
+zzfx=                   // play sound
+(p=1,k=.05,b=220,e=0,r=0,t=.1,q=0,D=1,u=0,y=0,v=0,z=0,l=0,E=0,A=0,F=0,c=0,w=1,m=0,B=0
+,N=0)=>{let M=Math,d=2*M.PI,R=44100,G=u*=500*d/R/R,C=b*=(1-k+2*k*M.random(k=[]))*d/R,
+g=0,H=0,a=0,n=1,I=0,J=0,f=0,h=N<0?-1:1,x=d*h*N*2/R,L=M.cos(x),Z=M.sin,K=Z(x)/4,O=1+K,
+X=-2*L/O,Y=(1-K)/O,P=(1+h*L)/2/O,Q=-(h+L)/O,S=P,T=0,U=0,V=0,W=0;e=R*e+9;m*=R;r*=R;t*=
+R;c*=R;y*=500*d/R**3;A*=d/R;v*=d/R;z*=R;l=R*l|0;p*=zzfxV;for(h=e+m+r+t+c|0;a<h;k[a++]
+=f*p)++J%(100*F|0)||(f=q?1<q?2<q?3<q?4<q?(g/d%1<D/2)*2-1:Z(g**3):M.max(M.min(M.tan(g)
+,1),-1):1-(2*g/d%2+2)%2:1-4*M.abs(M.round(g/d)-g/d):Z(g),f=(l?1-B+B*Z(d*a/l):1)*(4<q?
+f:(f<0?-1:1)*M.abs(f)**D)*(a<e?a/e:a<e+m?1-(a-e)/m*(1-w):a<e+m+r?w:a<h-c?(h-a-c)/t*w:
+0),f=c?f/2+(c>a?0:(a<h-c?1:(h-a)/c)*k[a-c|0]/2/p):f,N?f=W=S*T+Q*(T=U)+P*(U=f)-Y*V-X*(
+V=W):0),x=(b+=u+=y)*M.cos(A*H++),g+=x+x*E*Z(a**5),n&&++n>z&&(b+=v,C+=v,n=0),!l||++I%l
+||(b=C,u=G,n=n||1);X=zzfxX,p=X.createBuffer(1,h,R);p.getChannelData(0).set(k);b=X.
+createBufferSource();b.buffer=p;b.connect(X.destination);b.start()}
+var JSConfetti=function(){"use strict";function t(t,e){if(!(t instanceof e))throw new TypeError("Cannot call a class as a function")}function e(t,e){for(var i=0;i<e.length;i++){var n=e[i];n.enumerable=n.enumerable||!1,n.configurable=!0,"value"in n&&(n.writable=!0),Object.defineProperty(t,n.key,n)}}function i(t,i,n){return i&&e(t.prototype,i),n&&e(t,n),t}function n(t){return+t.replace(/px/,"")}function s(t,e){var i=arguments.length>2&&void 0!==arguments[2]?arguments[2]:0,n=Math.random()*(e-t)+t;return Math.floor(n*Math.pow(10,i))/Math.pow(10,i)}function o(t){return t[s(0,t.length)]}var a=["#fcf403","#62fc03","#f4fc03","#03e7fc","#03fca5","#a503fc","#fc03ad","#fc03c2"];function r(t){return Math.log(t)/Math.log(1920)}var h=function(){function e(i){t(this,e);var n=i.initialPosition,a=i.direction,h=i.confettiRadius,c=i.confettiColors,u=i.emojis,l=i.emojiSize,d=i.canvasWidth,f=s(.9,1.7,3)*r(d);this.confettiSpeed={x:f,y:f},this.finalConfettiSpeedX=s(.2,.6,3),this.rotationSpeed=u.length?.01:s(.03,.07,3)*r(d),this.dragForceCoefficient=s(5e-4,9e-4,6),this.radius={x:h,y:h},this.initialRadius=h,this.rotationAngle="left"===a?s(0,.2,3):s(-.2,0,3),this.emojiSize=l,this.emojiRotationAngle=s(0,2*Math.PI),this.radiusYUpdateDirection="down";var m="left"===a?s(82,15)*Math.PI/180:s(-15,-82)*Math.PI/180;this.absCos=Math.abs(Math.cos(m)),this.absSin=Math.abs(Math.sin(m));var v=s(-150,0),p={x:n.x+("left"===a?-v:v)*this.absCos,y:n.y-v*this.absSin};this.currentPosition=Object.assign({},p),this.initialPosition=Object.assign({},p),this.color=u.length?null:o(c),this.emoji=u.length?o(u):null,this.createdAt=(new Date).getTime(),this.direction=a}return i(e,[{key:"draw",value:function(t){var e=this.currentPosition,i=this.radius,n=this.color,s=this.emoji,o=this.rotationAngle,a=this.emojiRotationAngle,r=this.emojiSize,h=window.devicePixelRatio;n?(t.fillStyle=n,t.beginPath(),t.ellipse(e.x*h,e.y*h,i.x*h,i.y*h,o,0,2*Math.PI),t.fill()):s&&(t.font="".concat(r,"px serif"),t.save(),t.translate(h*e.x,h*e.y),t.rotate(a),t.textAlign="center",t.fillText(s,0,0),t.restore())}},{key:"updatePosition",value:function(t,e){var i=this.confettiSpeed,n=this.dragForceCoefficient,s=this.finalConfettiSpeedX,o=this.radiusYUpdateDirection,a=this.rotationSpeed,r=this.createdAt,h=this.direction,c=e-r;i.x>s&&(this.confettiSpeed.x-=n*t),this.currentPosition.x+=i.x*("left"===h?-this.absCos:this.absCos)*t,this.currentPosition.y=this.initialPosition.y-i.y*this.absSin*c+.00125*Math.pow(c,2)/2,this.rotationSpeed-=this.emoji?1e-4:1e-5*t,this.rotationSpeed<0&&(this.rotationSpeed=0),this.emoji?this.emojiRotationAngle+=this.rotationSpeed*t%(2*Math.PI):"down"===o?(this.radius.y-=t*a,this.radius.y<=0&&(this.radius.y=0,this.radiusYUpdateDirection="up")):(this.radius.y+=t*a,this.radius.y>=this.initialRadius&&(this.radius.y=this.initialRadius,this.radiusYUpdateDirection="down"))}},{key:"getIsVisibleOnCanvas",value:function(t){return this.currentPosition.y<t+100}}]),e}();function c(){var t=document.createElement("canvas");return t.style.position="fixed",t.style.width="100%",t.style.height="100%",t.style.top="0",t.style.left="0",t.style.zIndex="1000",t.style.pointerEvents="none",document.body.appendChild(t),t}function u(t){var e=t.confettiRadius,i=void 0===e?6:e,n=t.confettiNumber,s=void 0===n?t.confettiesNumber||(t.emojis?40:250):n,o=t.confettiColors,r=void 0===o?a:o,h=t.emojis,c=void 0===h?t.emojies||[]:h,u=t.emojiSize,l=void 0===u?80:u;return t.emojies&&console.error("emojies argument is deprecated, please use emojis instead"),t.confettiesNumber&&console.error("confettiesNumber argument is deprecated, please use confettiNumber instead"),{confettiRadius:i,confettiNumber:s,confettiColors:r,emojis:c,emojiSize:l}}var l=function(){function e(i){var n=this;t(this,e),this.canvasContext=i,this.shapes=[],this.promise=new Promise((function(t){return n.resolvePromise=t}))}return i(e,[{key:"getBatchCompletePromise",value:function(){return this.promise}},{key:"addShapes",value:function(){var t;(t=this.shapes).push.apply(t,arguments)}},{key:"complete",value:function(){var t;return!this.shapes.length&&(null===(t=this.resolvePromise)||void 0===t||t.call(this),!0)}},{key:"processShapes",value:function(t,e,i){var n=this,s=t.timeDelta,o=t.currentTime;this.shapes=this.shapes.filter((function(t){return t.updatePosition(s,o),t.draw(n.canvasContext),!i||t.getIsVisibleOnCanvas(e)}))}}]),e}();return function(){function e(){var i=arguments.length>0&&void 0!==arguments[0]?arguments[0]:{};t(this,e),this.activeConfettiBatches=[],this.canvas=i.canvas||c(),this.canvasContext=this.canvas.getContext("2d"),this.requestAnimationFrameRequested=!1,this.lastUpdated=(new Date).getTime(),this.iterationIndex=0,this.loop=this.loop.bind(this),requestAnimationFrame(this.loop)}return i(e,[{key:"loop",value:function(){var t,e,i,s,o;this.requestAnimationFrameRequested=!1,t=this.canvas,e=window.devicePixelRatio,i=getComputedStyle(t),s=n(i.getPropertyValue("width")),o=n(i.getPropertyValue("height")),t.setAttribute("width",(s*e).toString()),t.setAttribute("height",(o*e).toString());var a=(new Date).getTime(),r=a-this.lastUpdated,h=this.canvas.offsetHeight,c=this.iterationIndex%10==0;this.activeConfettiBatches=this.activeConfettiBatches.filter((function(t){return t.processShapes({timeDelta:r,currentTime:a},h,c),!c||!t.complete()})),this.iterationIndex++,this.queueAnimationFrameIfNeeded(a)}},{key:"queueAnimationFrameIfNeeded",value:function(t){this.requestAnimationFrameRequested||this.activeConfettiBatches.length<1||(this.requestAnimationFrameRequested=!0,this.lastUpdated=t||(new Date).getTime(),requestAnimationFrame(this.loop))}},{key:"addConfetti",value:function(){for(var t=arguments.length>0&&void 0!==arguments[0]?arguments[0]:{},e=u(t),i=e.confettiRadius,n=e.confettiNumber,s=e.confettiColors,o=e.emojis,a=e.emojiSize,r=this.canvas.getBoundingClientRect(),c=r.width,d=r.height,f=5*d/7,m={x:0,y:f},v={x:c,y:f},p=new l(this.canvasContext),y=0;y<n/2;y++){var g=new h({initialPosition:m,direction:"right",confettiRadius:i,confettiColors:s,confettiNumber:n,emojis:o,emojiSize:a,canvasWidth:c}),C=new h({initialPosition:v,direction:"left",confettiRadius:i,confettiColors:s,confettiNumber:n,emojis:o,emojiSize:a,canvasWidth:c});p.addShapes(g,C)}return this.activeConfettiBatches.push(p),this.queueAnimationFrameIfNeeded(),p.getBatchCompletePromise()}},{key:"clearCanvas",value:function(){this.activeConfettiBatches=[]}},{key:"destroyCanvas",value:function(){this.canvas.remove()}}]),e}()}();
+</script>
+
+<script>
+/* --- 🎉 연출 업그레이드: ZzFX 아케이드 효과음 + 이모지 컨페티 --- */
+const ZZS={
+  stamp:[2,,331,.01,.06,.16,1,2.4,,,,,,.6,,.15,,.8,.04],
+  coin:[,,1675,,.06,.24,1,1.82,,,837,.06],
+  gacha:[,,539,0,.04,.29,1,1.92,,,567,.02,.02,,,,.04],
+  good:[,,685,.02,.05,.13,1,1.4,,,397,.06],
+  bad:[,,172,.01,.06,.19,2,.7,-3]
+};
+sfx=function(t){
+  if(lsGet('dayoon_mute',0))return;
+  try{
+    zzfxX=zzfxX||new (window.AudioContext||window.webkitAudioContext)();
+    if(zzfxX.state==='suspended')zzfxX.resume();
+    if(ZZS[t])zzfx.apply(null,ZZS[t]);
+  }catch(e){}
+};
+let _jcInst=null;
+function burst(emojis,n){
+  try{
+    if(!window.JSConfetti)return;
+    if(!_jcInst){
+      const cv=document.createElement('canvas');
+      cv.style.cssText='position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:99999';
+      document.body.appendChild(cv);
+      _jcInst=new JSConfetti({canvas:cv});
+    }
+    _jcInst.addConfetti({emojis:emojis,emojiSize:56,confettiNumber:n||34});
+  }catch(e){}
+}
+/* 업적 달성 → 컨페티 */
+const _achRevealFx=achReveal;
+achReveal=function(g,c){ _achRevealFx(g,c); burst(['🏅','⭐','🎉']); };
+/* 동물 성장(레벨업) → 컨페티 */
+const _petAddXpFx=petAddXp;
+petAddXp=function(pid,delta){
+  const before=petLv(petXp(pid));
+  _petAddXpFx(pid,delta);
+  if(delta>0&&petLv(petXp(pid))>before)setTimeout(function(){burst(['❤️','🐾','⭐'],40);},200);
+};
+/* 퀴즈 만점 → 컨페티 */
+const _quizEndFx=quizEnd;
+quizEnd=function(){ _quizEndFx(); if(quiz.qs.length&&quiz.score===quiz.qs.length)burst(['💯','🎉','🪙']); };
+const _spEndFx=spEnd;
+spEnd=function(){ _spEndFx(); if(sp.qs.length&&sp.score===sp.qs.length)burst(['💯','🔤','🎉']); };
+/* 뽑기 짜잔 순간 → 컨페티 */
+const _gachaFx=gacha;
+gacha=function(){ const c0=getCoins(); _gachaFx(); if(getCoins()<c0)setTimeout(function(){burst(['🎁','✨','🎊']);},1150); };
+</script>
+
+<script>
+/* --- 👂 퀴즈 3: 듣기 퀴즈 (단어를 듣고 뜻 고르기 — 글자 안 보여줌) --- */
+function startQuiz3(){
+  const pool=quizWordPool();
+  if(pool.length<4){showToast('퀴즈 낼 단어가 아직 부족해요! 조금 더 배우고 와요 🌱'); return;}
+  const qpool=freshPool(pool), wl=wrongList();
+  const wrongPool=qpool.filter(function(w){return wl.indexOf(w.en)>-1;}).sort(qrnd).slice(0,2);
+  const rest=qpool.filter(function(w){return wrongPool.indexOf(w)<0;}).sort(qrnd);
+  const picked=wrongPool.concat(rest).slice(0,Math.min(5,qpool.length)).sort(qrnd);
+  const qs=picked.map(function(w){
+    const seen={}; seen[w.ko]=1;
+    const wrong=pool.filter(function(x){return x.en!==w.en;}).sort(qrnd)
+      .filter(function(x){ if(seen[x.ko])return false; seen[x.ko]=1; return true; }).slice(0,3);
+    return {w:w, mode:'listen', choices:wrong.concat([w]).sort(qrnd)};
+  });
+  quiz={qs:qs,i:0,score:0,rewarded:true,locked:false};
+  document.getElementById('quizov').style.display='flex';
+  quizShow();
+}
+const _quizShowL=quizShow;
+quizShow=function(){
+  const q=quiz.qs[quiz.i];
+  if(!q||q.mode!=='listen')return _quizShowL();
+  document.getElementById('quizbody').innerHTML=
+    '<div class="qz-num">'+(quiz.i+1)+' / '+quiz.qs.length+'</div>'
+    +'<div class="qz-label">👂 잘 듣고 뜻을 골라요! (글자는 비밀)</div>'
+    +'<div class="qz-word" id="qz-listen"><button class="spk" type="button" style="font-size:22px;padding:8px 14px" onclick="speak(quiz.qs[quiz.i].w.en)">🔊 다시 듣기</button> '
+    +'<button class="spk" type="button" style="font-size:22px;padding:8px 14px" onclick="speak(quiz.qs[quiz.i].w.en,0.6)">🐢 천천히</button></div>'
+    +'<div class="qz-choices">'+q.choices.map(function(c,i){
+      return '<button type="button" class="qz-c" onclick="quizAnswer('+i+')">'+c.ko+'</button>';
+    }).join('')+'</div>';
+  speak(q.w.en);
+};
+const _quizAnswerL=quizAnswer;
+quizAnswer=function(i){
+  const q=quiz.qs[quiz.i], was=quiz.locked;
+  _quizAnswerL(i);
+  if(!was&&q.mode==='listen'){ // 답 고른 뒤엔 단어 공개
+    const el=document.getElementById('qz-listen');
+    if(el)el.insertAdjacentHTML('beforeend','<div style="margin-top:8px;font-size:19px"><b>'+q.w.en+'</b> · '+q.w.ko+'</div>');
+  }
+};
+const _quizEndK=quizEnd;
+quizEnd=function(){
+  const listen=quiz.qs.length&&quiz.qs[0].mode==='listen';
+  _quizEndK();
+  if(listen){ const b=document.querySelector('#quizbody .qz-c'); if(b)b.onclick=startQuiz3; } // "한 번 더!"가 듣기 퀴즈로
+};
+
+/* --- 🃏 카드 짝맞추기: 영어 단어 ↔ 한국어 뜻 (6쌍 12장) --- */
+let mm={cards:[],open:[],lock:false,moves:0,matched:0,total:0};
+function startMatch(){
+  const pool=quizWordPool();
+  if(pool.length<6){showToast('게임에 쓸 단어가 아직 부족해요! 조금 더 배우고 와요 🌱'); return;}
+  const picked=freshPool(pool).sort(qrnd).slice(0,6);
+  pool.sort(qrnd).forEach(function(w){ if(picked.length<6&&picked.indexOf(w)<0)picked.push(w); });
+  mm={cards:[],open:[],lock:false,moves:0,matched:0,total:picked.length};
+  picked.forEach(function(w,i){ mm.cards.push({t:w.en,pair:i,en:1},{t:w.ko,pair:i}); });
+  mm.cards.sort(qrnd);
+  document.getElementById('matchov').style.display='flex';
+  mmRender();
+}
+function mmRender(){
+  let h='<div class="rtitle">🃏 카드 짝맞추기</div>'
+    +'<div class="rsub">영어 단어와 뜻을 짝지어요! 짝 +2🪙 · 전부 맞히면 +10🪙</div>';
+  h+='<div class="mm-grid">'+mm.cards.map(function(c,i){
+    const st=c.done?' done':(mm.open.indexOf(i)>-1?' open':'');
+    return '<button type="button" class="mm-c'+st+(c.en?' mmen':'')+'" onclick="mmTap('+i+')">'+(st?c.t:'❓')+'</button>';
+  }).join('')+'</div>';
+  h+='<div class="qz-label" style="margin-top:9px">뒤집기 '+mm.moves+'번 · 짝 '+mm.matched+'/'+mm.total+'</div>';
+  h+='<div class="qz-choices" style="margin-top:8px">'
+    +(mm.matched===mm.total?'<button type="button" class="qz-c" onclick="startMatch()">한 번 더!</button>':'')
+    +'<button type="button" class="qz-c" onclick="closeMatch()">닫기</button></div>';
+  document.getElementById('matchbody').innerHTML=h;
+}
+function mmTap(i){
+  if(mm.lock||mm.cards[i].done||mm.open.indexOf(i)>-1)return;
+  if(mm.cards[i].en)speak(mm.cards[i].t);
+  mm.open.push(i);
+  if(mm.open.length===2){
+    mm.moves++;
+    const a=mm.cards[mm.open[0]], b=mm.cards[mm.open[1]];
+    if(a.pair===b.pair){
+      a.done=b.done=1; mm.matched++; mm.open=[]; sfx('good'); setCoins(getCoins()+2);
+      mmRender();
+      if(mm.matched===mm.total){
+        setCoins(getCoins()+10); sfx('gacha'); burst(['🃏','🎉','🪙']);
+        document.getElementById('matchbody').insertAdjacentHTML('beforeend',
+          '<div class="qz-word" style="margin-top:8px">💯 다 맞췄다! +'+(mm.total*2+10)+'🪙</div>');
+        mmRender(); checkAch();
+      }
+    } else {
+      mm.lock=true; sfx('bad'); mmRender();
+      setTimeout(function(){ mm.open=[]; mm.lock=false; mmRender(); },800);
+    }
+  } else mmRender();
+}
+function closeMatch(){ document.getElementById('matchov').style.display='none'; if(window.speechSynthesis)speechSynthesis.cancel(); render(); }
+document.body.insertAdjacentHTML('beforeend','<div id="matchov" onclick="if(event.target===this)closeMatch()"><div class="card" id="matchbody"></div></div>');
+
+/* --- 🎯 버튼 = 퀴즈·게임 메뉴 (4종) --- */
+openQuiz=function(){
+  document.getElementById('quizov').style.display='flex';
+  document.getElementById('quizbody').innerHTML=
+    '<div class="qz-label" style="margin-top:12px">어떤 놀이로 할까?</div>'
+    +'<div class="qz-choices" style="margin-top:10px">'
+    +'<button type="button" class="qz-c qz-mode" onclick="startQuiz1()">🎯 단어 퀴즈<small>뜻 맞히기 · 정답 +2🪙</small></button>'
+    +'<button type="button" class="qz-c qz-mode" onclick="startQuiz2()">🔤 스펠링 퀴즈<small>글자 조립 · 정답 +3🪙</small></button>'
+    +'<button type="button" class="qz-c qz-mode" onclick="startQuiz3()">👂 듣기 퀴즈<small>듣고 뜻 고르기 · 정답 +2🪙</small></button>'
+    +'<button type="button" class="qz-c qz-mode" onclick="closeQuiz();startMatch()">🃏 카드 짝맞추기<small>단어·뜻 짝짓기 · 짝 +2🪙</small></button></div>';
+};
+(function(){ // 🎯 플로팅 버튼을 메뉴로 연결
+  const fb=document.querySelector('.fontbtn');
+  if(!fb)return;
+  const qz=Array.prototype.slice.call(fb.querySelectorAll('.toolbtn')).find(function(b){return b.textContent==='🎯';});
+  if(qz){ qz.onclick=openQuiz; qz.title='퀴즈·게임 고르기'; }
+})();
+</script>
+
+<style>
+  #matchov{position:fixed;inset:0;background:rgba(51,48,58,.45);z-index:50;display:none;align-items:center;justify-content:center;padding:20px;}
+  #matchov .card{background:#fff;border-radius:20px;padding:22px 18px 18px;max-width:420px;width:100%;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.25);}
+  #matchov .rtitle{font-size:14px;font-weight:800;color:var(--pink-d);}
+  #matchov .rsub{font-size:12px;color:var(--soft);margin-top:2px;}
+  .mm-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:12px;}
+  .mm-c{min-height:52px;border-radius:10px;border:1.5px solid var(--line);background:#fdf3f8;
+    font-size:13px;font-weight:700;padding:4px 2px;cursor:pointer;line-height:1.25;word-break:keep-all;}
+  .mm-c.open{background:#ffe3ef;border-color:var(--pink);}
+  .mm-c.mmen.open,.mm-c.mmen.done{font-size:13.5px;}
+  .mm-c.done{background:#e6f7e9;border-color:#7fc98a;color:#2e7d3a;}
+</style>
 </body>
 </html>
